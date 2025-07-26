@@ -51,23 +51,24 @@ $customizerHidden = 'customizer-hide';
         <div class="app-brand mb-5">
           <a href="{{url('/')}}" class="app-brand-link gap-2">
             <span class="app-brand-logo demo">@include('_partials.macros',["width"=>25,"withbg"=>'var(--bs-primary)'])</span>
-            <span class="app-brand-text demo text-body fw-bold">{{config('variables.templateName')}}</span>
+            <span class="app-brand-text demo text-body fw-bold"  style="height: 2rem">{{config('variables.templateName')}}</span>
           </a>
         </div>
         <!-- /Logo -->
-        <h4 class="mb-2">Welcome to {{config('variables.templateName')}}! 👋</h4>
-        <p class="mb-4">Please sign-in to your account and start the adventure</p>
+        <h4 class="mb-2"> {{ tr_helper('contents','welcomeTo') }} {{config('variables.templateName')}}! 👋</h4>
+        <p class="mb-4"> {{ tr_helper('contents','SignInText') }} </p>
 
-        <form id="formAuthentication" class="mb-3" action="{{url('/')}}" method="GET">
+        <form id="formAuthentication" class="mb-3" action="{{url('/login')}}" method="POST">
+			@csrf
           <div class="mb-3">
-            <label for="email" class="form-label">Email or Username</label>
-            <input type="text" class="form-control" id="email" name="email-username" placeholder="Enter your email or username" autofocus>
+            <label for="email" class="form-label">{{ tr_helper('validation', 'attributes.email') }}</label>
+            <input type="text" class="form-control" id="email" name="email" placeholder="{{ tr_helper('validation', 'input_placeholder.enter', 'email') }}" autofocus>
           </div>
           <div class="mb-3 form-password-toggle">
             <div class="d-flex justify-content-between">
-              <label class="form-label" for="password">Password</label>
+              <label class="form-label" for="password">{{ tr_helper('validation', 'attributes.password') }}</label>
               <a href="{{url('auth/forgot-password-cover')}}">
-                <small>Forgot Password?</small>
+                <small>{{ tr_helper('contents','ForgetPass') }}</small>
               </a>
             </div>
             <div class="input-group input-group-merge">
@@ -79,24 +80,24 @@ $customizerHidden = 'customizer-hide';
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="remember-me">
               <label class="form-check-label" for="remember-me">
-                Remember Me
+                  {{ tr_helper('contents','RememberMe') }}
               </label>
             </div>
           </div>
           <button class="btn btn-primary d-grid w-100">
-            Sign in
+              {{ tr_helper('contents','SignIn') }}
           </button>
         </form>
 
-        <p class="text-center">
-          <span>New on our platform?</span>
-          <a href="{{url('auth/register-cover')}}">
-            <span>Create an account</span>
-          </a>
-        </p>
+{{--        <p class="text-center">--}}
+{{--          <span>New on our platform?</span>--}}
+{{--          <a href="{{url('auth/register-cover')}}">--}}
+{{--            <span>Create an account</span>--}}
+{{--          </a>--}}
+{{--        </p>--}}
 
         <div class="divider my-4">
-          <div class="divider-text">or</div>
+          <div class="divider-text">{{ tr_helper('contents','SocialMedia') }}</div>
         </div>
 
         <div class="d-flex justify-content-center">
