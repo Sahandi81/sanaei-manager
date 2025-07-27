@@ -189,7 +189,7 @@ if (document.getElementById('layout-menu')) {
     let dropdownItems = languageDropdown[0].querySelectorAll('.dropdown-item');
     const dropdownActiveItem = languageDropdown[0].querySelector('.dropdown-item.active');
 
-    directionChange(dropdownActiveItem.dataset.textDirection);
+    directionChange(dropdownActiveItem?.dataset?.textDirection);
 
     for (let i = 0; i < dropdownItems.length; i++) {
       dropdownItems[i].addEventListener('click', function () {

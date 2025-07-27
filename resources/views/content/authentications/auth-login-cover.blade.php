@@ -50,7 +50,7 @@ $customizerHidden = 'customizer-hide';
         <!-- Logo -->
         <div class="app-brand mb-5">
           <a href="{{url('/')}}" class="app-brand-link gap-2">
-            <span class="app-brand-logo demo">@include('_partials.macros',["width"=>25,"withbg"=>'var(--bs-primary)'])</span>
+            <span class="app-brand-logo demo">@include('_partials.macros',["width"=>70,"withbg"=>'var(--bs-primary)'])</span>
             <span class="app-brand-text demo text-body fw-bold"  style="height: 2rem">{{config('variables.templateName')}}</span>
           </a>
         </div>
@@ -60,6 +60,7 @@ $customizerHidden = 'customizer-hide';
 
         <form id="formAuthentication" class="mb-3" action="{{url('/login')}}" method="POST">
 			@csrf
+			@include('components.errors')
           <div class="mb-3">
             <label for="email" class="form-label">{{ tr_helper('validation', 'attributes.email') }}</label>
             <input type="text" class="form-control" id="email" name="email" placeholder="{{ tr_helper('validation', 'input_placeholder.enter', 'email') }}" autofocus>
@@ -67,9 +68,9 @@ $customizerHidden = 'customizer-hide';
           <div class="mb-3 form-password-toggle">
             <div class="d-flex justify-content-between">
               <label class="form-label" for="password">{{ tr_helper('validation', 'attributes.password') }}</label>
-              <a href="{{url('auth/forgot-password-cover')}}">
-                <small>{{ tr_helper('contents','ForgetPass') }}</small>
-              </a>
+{{--              <a href="{{url('auth/forgot-password-cover')}}">--}}
+{{--                <small>{{ tr_helper('contents','ForgetPass') }}</small>--}}
+{{--              </a>--}}
             </div>
             <div class="input-group input-group-merge">
               <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />

@@ -81,7 +81,6 @@ $(function () {
           orderable: false,
           searchable: false,
           responsivePriority: 4,
-          checkboxes: true,
           render: function () {
             return '<input type="checkbox" class="dt-checkboxes form-check-input">';
           },

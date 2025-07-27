@@ -15,7 +15,7 @@ function tr_helper(string $lang, ?string $key, ?string $attr = null): \Illuminat
     if (!is_null($attr)){
         $replacedText = tr_helper('validation', 'attributes.' . $attr);
         if (str_contains($replacedText, $attr)){
-            $str = str_replace('?attr', '<b>' . $attr . '</b>', $str);
+            $str = str_replace('?attr',  $attr, $str);
         }else{
             $str = str_replace('?attr', $replacedText, $str);
         }

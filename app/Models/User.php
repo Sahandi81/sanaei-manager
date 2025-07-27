@@ -4,8 +4,10 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Modules\Permission\App\Models\Role;
 
 class User extends Authenticatable
 {
@@ -21,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_key',
     ];
 
     /**
@@ -45,4 +48,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+	public function role(): HasOne
+	{
+		return $this->hasOne(Role::class, 'role_key', 'role_key');
+	}
 }

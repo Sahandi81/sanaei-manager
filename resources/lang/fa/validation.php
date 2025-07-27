@@ -101,10 +101,13 @@ return [
     |
     */
     'attributes' => [
+		'ip'				=> 'آی‌پی',
 		'email'				=> 'ایمیل',
+		'location'			=> 'لوکیشن',
 		'password'			=> 'رمزعبور',
+		'panel_type'		=> 'نوع پنل',
 		'remember_me'		=> 'مرا به خاطر بسپار',
-		'name'				=> 'نام و نام‌خانوادگی',
+		'name'				=> 'نام',
 		'role'				=> 'نقش',
 		'status'			=> 'وضعیت',
 		'username'			=> 'نام کاربری',
@@ -204,7 +207,8 @@ return [
 		'value'				=> 'مقدار',
 		'background'		=> 'پس زمینه',
 		'body'				=> 'متن اصلی',
-		'api_url'			=> 'آدرس api',
+		'api_url'			=> 'آدرس سرور',
+		'active'			=> 'فعال',
 		'item_path'			=> 'مسیر پارامتر قیمت',
 		'account_id'		=> 'حساب',
 		'harvest_information_id'=> 'واریز به کیف پول یا شبا',

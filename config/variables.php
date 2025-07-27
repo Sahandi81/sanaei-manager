@@ -3,7 +3,7 @@
   return [
     "creatorName" => "#Sahandi81",
     "creatorUrl" => "https://t.me/real_sahandi81",
-    "templateName" => "مدیریت سرور Satify",
+    "templateName" => "Satify",
     "templateSuffix" => "مدیریت سرور Satify",
     "templateVersion" => "2.2.0",
     "templateFree" => false,
