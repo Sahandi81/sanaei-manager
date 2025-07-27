@@ -64,10 +64,12 @@
 							@endforelse
 							</tbody>
 						</table>
-						<div class="mt-3">
-							{{ $servers->links() }}
-						</div>
+
 					</div>
+
+				</div>
+				<div class="mt-3">
+					{{ $servers->links('vendor.pagination.bootstrap-5') }}
 				</div>
 			</div>
 		</div>
