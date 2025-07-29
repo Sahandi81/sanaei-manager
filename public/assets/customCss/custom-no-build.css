@@ -1,0 +1,19 @@
+.btn-9rem {
+	width: 9rem!important;
+}
+.spinner-border {
+	margin-right: 5px;
+	margin-left: 5px;
+}
+
+#toast-container {
+	z-index: 999;
+}
+
+.alert {
+	opacity: 1;
+	transition: opacity 0.5s ease-in-out;
+}
+.alert.fade-out {
+	opacity: 0;
+}

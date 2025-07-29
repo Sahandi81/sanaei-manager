@@ -1,5 +1,5 @@
 @extends('layouts/layoutMaster')
-@php($customPageName = tr_helper('contents', 'LIST') . ' ' . tr_helper('contents', 'SERVER'))
+@php($customPageName = tr_helper('contents', 'List') . ' ' . tr_helper('contents', 'Server'))
 
 @section('title', $customPageName)
 
@@ -51,9 +51,23 @@
 											</button>
 											<div class="dropdown-menu">
 												<a class="dropdown-item" href="{{ route('servers.edit', $server->id) }}">
-													<i class="bx bx-edit-alt me-1"></i> Edit
+													<i class="bx bx-edit-alt me-1"></i> {{ tr_helper('contents', 'Edit') }}
 												</a>
+												<form action="" method="POST">
+													@csrf
+													@method('DELETE')
+													<button type="button"
+															data-bs-toggle="modal"
+															data-bs-route="{{ route('servers.destroy', $server->id) }}"
+															data-bs-target="#deleteServerModal"
+															data-server-id="{{ $server->id }}"
+															data-server-name="{{ $server->name }}"
+															class="dropdown-item text-danger open-delete-modal">
+														<i class="bx bx-trash me-1"></i> {{ tr_helper('contents', 'Delete') }}
+													</button>
+												</form>
 											</div>
+
 										</div>
 									</td>
 								</tr>
@@ -73,5 +87,71 @@
 				</div>
 			</div>
 		</div>
+
+
+
+
+
+		<!-- Delete Confirmation Modal -->
+		<div class="modal fade" id="deleteServerModal" tabindex="-1" aria-labelledby="deleteServerModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<form method="POST" id="deleteServerForm" class="w-100">
+					@csrf
+					@method('DELETE')
+
+					<div class="modal-content border-0 shadow-lg rounded-4">
+						<div class="modal-body text-center p-5">
+
+							<div class="mb-4">
+								<div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 64px; height: 64px;">
+									<i class="bx bx-trash fs-1"></i>
+								</div>
+							</div>
+
+							<h4 class="fw-bold mb-3">{{ tr_helper('contents', 'AreYouSure') }}</h4>
+
+							<p class="text-muted mb-4">
+								{{ tr_helper('contents', 'ThisActionCannotBeUndone') }}
+							</p>
+
+							<p class="fw-semibold fs-6 text-dark mb-4 server-name-placeholder">
+								<!-- Filled by JS -->
+							</p>
+
+							<div class="d-flex justify-content-center gap-2">
+								<button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+									<i class="bx bx-x me-1"></i> {{ tr_helper('contents', 'Cancel') }}
+								</button>
+
+								<button type="submit" class="btn btn-danger px-4">
+									<i class="bx bx-trash me-1"></i> {{ tr_helper('contents', 'DeleteNow') }}
+								</button>
+							</div>
+
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+
+
+		<script>
+			document.addEventListener('DOMContentLoaded', function () {
+				const modal = document.getElementById('deleteServerModal');
+				const form = document.getElementById('deleteServerForm');
+				const namePlaceholder = modal.querySelector('.server-name-placeholder');
+
+				document.querySelectorAll('.open-delete-modal').forEach(button => {
+					button.addEventListener('click', () => {
+						const serverName = button.getAttribute('data-server-name');
+						const deleteRoute = button.getAttribute('data-bs-route');
+
+						form.setAttribute('action', deleteRoute);
+						namePlaceholder.textContent = `« ${serverName} »`;
+					});
+				});
+			});
+
+		</script>
 	</div>
 @endsection

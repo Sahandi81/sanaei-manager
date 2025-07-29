@@ -9,7 +9,7 @@
 	unset($segments[$length-1]);
 
 	$breadcrumbParts = array_map(function ($segment) {
-		return tr_helper('contents', strtoupper($segment));
+		return tr_helper('contents', ucfirst($segment));
 	}, $segments);
 
 	// Handle the breadcrumb display
@@ -17,5 +17,5 @@
 @endphp
 
 <h4 class="py-3 mb-4">
-	<span class="text-muted fw-light">{!! $breadcrumbText !!} /</span> {{ tr_helper('contents', strtoupper($last)) }}
+	<span class="text-muted fw-light">{!! $breadcrumbText !!} /</span> {{ tr_helper('contents', ucfirst($last)) }}
 </h4>

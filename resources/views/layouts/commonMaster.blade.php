@@ -30,10 +30,15 @@ $contentLayout = (isset($container) ? (($container === 'container-xxl') ? "layou
   <!-- Include Styles -->
   <!-- $isFront is used to append the front layout styles only on the front layout otherwise the variable will be blank -->
   @include('layouts/sections/styles' . $isFront)
+	<link rel="stylesheet" href="{{url('assets/customCss/custom-no-build.css')}}" />
 
   <!-- Include Scripts for customizer, helper, analytics, config -->
   <!-- $isFront is used to append the front layout scriptsIncludes only on the front layout otherwise the variable will be blank -->
+
+
+<script src="{{url('assets/customJs/custom-no-build.js')}}"></script>
   @include('layouts/sections/scriptsIncludes' . $isFront)
+
 	<style>
 		.demo {
 			text-transform: none!important;
@@ -43,6 +48,9 @@ $contentLayout = (isset($container) ? (($container === 'container-xxl') ? "layou
 		}
 		.fv-plugins-message-container{
 			direction: ltr !important;
+		}
+		.table-responsive {
+			padding-bottom: 1rem;
 		}
 	</style>
 	<script>
@@ -224,7 +232,8 @@ $contentLayout = (isset($container) ? (($container === 'container-xxl') ? "layou
 
 <body>
 
-
+<div class="toast-container position-fixed top-1 end-0 p-3 z-index-5" id="toast-container" style="z-index: 99999999999!important;">
+</div>
   <!-- Layout Content -->
   @yield('layoutContent')
   <!--/ Layout Content -->

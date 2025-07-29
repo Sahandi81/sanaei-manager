@@ -10,11 +10,13 @@ class ServerRequest extends FormRequest
 	private array $formTypes;
 
 	const CREATE_SERVER = 'create_server';
+	const UPDATE_SERVER = 'update_server';
 
 	private function setFromTypes()
 	{
 		$this->formTypes = [
 			self::CREATE_SERVER,
+			self::UPDATE_SERVER,
 		];
 
 		$this->formTypes = array_combine($this->formTypes, $this->formTypes); # =))
@@ -47,8 +49,18 @@ class ServerRequest extends FormRequest
 				'ip' 				=> ['required', 'string', 'ip'],
 				'location' 			=> ['nullable', 'string', 'max:100'],
 				'panel_type' 		=> ['required', 'in:sanaei'], // add more types if needed
+				'username' 	 	   	=> ['required', 'string', 'min:3', 'max:255'],
+				'password' 	 	   	=> ['required', 'string', 'min:3', 'max:255'],
 				'api_url' 			=> ['required', 'string', 'url', 'min:10'],
 				'status' 			=> ['required', 'int'],
+			],
+			self::UPDATE_SERVER => [
+				'user_id'       	=> ['nullable'],
+				'name'          	=> ['required', 'string', 'min:3', 'max:255'],
+				'api_url' 			=> ['required', 'string', 'url', 'min:10'],
+				'username' 	    	=> ['required', 'string', 'min:3', 'max:255'],
+				'password' 	    	=> ['nullable', 'string', 'min:3', 'max:255'],
+				'status'        	=> ['required', 'int'],
 			],
 
 			default => ['form' => ['required', Rule::in(implode(',', $this->formTypes))]],

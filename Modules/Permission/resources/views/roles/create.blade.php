@@ -36,7 +36,7 @@
 
 @section('content')
 <h4 class="py-3 mb-4">
-  <span class="text-muted fw-light">{{tr_helper('contents', 'ROLES')}} /</span> {{tr_helper('contents', 'CREATE')}}
+  <span class="text-muted fw-light">{{tr_helper('contents', 'ROLES')}} /</span> {{tr_helper('contents', 'Create')}}
 </h4>
 @include('components.errors')
 <div class="row">

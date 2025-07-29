@@ -49,6 +49,15 @@ class User extends Authenticatable
         ];
     }
 
+
+	public static function getNonSuperAdmins(): array
+	{
+		return User::query()
+			->where('role_key', '!=', 'super_admin')
+			->pluck('email', 'id')->toArray();
+	}
+
+
 	public function role(): HasOne
 	{
 		return $this->hasOne(Role::class, 'role_key', 'role_key');

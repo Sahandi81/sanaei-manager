@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/logging",
+    "description": "",
+    "authors": [
+        {
+            "name": "Sahandi81",
+            "email": "sahandi81.rahmatpanah@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Logging\\": "app/",
+            "Modules\\Logging\\Database\\Factories\\": "database/factories/",
+            "Modules\\Logging\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Logging\\Tests\\": "tests/"
+        }
+    }
+}

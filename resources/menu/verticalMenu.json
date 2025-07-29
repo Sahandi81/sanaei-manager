@@ -1,19 +1,19 @@
 {
   "menu": [
     {
-		"name": "SERVERS",
+		"name": "Servers",
 		"icon": "menu-icon tf-icons bx bx-server",
 		"slug": "servers",
 		"prefix": "panel.",
 		"submenu": [
 			{
 				"url": "servers.index",
-				"name": "LIST",
+				"name": "List",
 				"slug": "servers.index"
 			},
 			{
 				"url": "servers.create",
-				"name": "CREATE",
+				"name": "Create",
 				"slug": "servers.create"
 			}
       ]

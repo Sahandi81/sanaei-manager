@@ -1,5 +1,5 @@
 @extends('layouts/layoutMaster')
-@php($customPageName = tr_helper('contents', 'CREATE') . ' ' . tr_helper('contents', 'SERVER'))
+@php($customPageName = tr_helper('contents', 'Create') . ' ' . tr_helper('contents', 'Server'))
 
 @section('title', $customPageName)
 
@@ -105,6 +105,22 @@
 								:validation="['minLength' => 10]"
 							/>
 
+							<x-form.form-input
+								name="username"
+								type="text"
+								required
+								:validation="['minLength' => 3]"
+							/>
+
+
+							<x-form.form-input
+								name="password"
+								type="password"
+								helpText="Save password somewhere safe. You can't see it here anymore"
+								required
+								:validation="['minLength' => 3]"
+							/>
+
 
 							<x-form.form-input
 								name="status"
@@ -114,7 +130,7 @@
 								required
 							/>
 							<div class="col-12">
-								<button type="submit" class="btn btn-primary" data-submit-button
+								<button type="submit" class="btn btn-primary btn-9rem" data-submit-button
 										style="max-width: 10rem">
 									<span class="btn-text"> {{ tr_helper('contents', 'Save') }} </span>
 									<span class="spinner-border spinner-border-sm d-none" role="status"

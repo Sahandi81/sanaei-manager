@@ -1,4 +1,5 @@
 {
     "Permission": true,
-    "Server": true
+    "Server": true,
+    "Logging": true
 }

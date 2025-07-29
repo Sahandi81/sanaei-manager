@@ -79,7 +79,7 @@ $customizerHidden = 'customizer-hide';
           </div>
           <div class="mb-3">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="remember-me">
+              <input class="form-check-input" name="remember-me" type="checkbox" id="remember-me">
               <label class="form-check-label" for="remember-me">
                   {{ tr_helper('contents','RememberMe') }}
               </label>

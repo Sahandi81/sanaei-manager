@@ -32,14 +32,16 @@ class Server extends Model
 		'panel_type',
 		'api_url',
 		'api_key',
+		'username',
+		'password',
 		'status',
 	];
 
-	public static function getStatuesRaw(): array
+	public static function getStatuesRaw($filter = null): array
 	{
 		$updatedStatuses = [];
 		foreach (self::$statuses as $index => $status) {
-			if ($status['type'] === 'public')
+			if ($status['type'] === 'public' || $filter === '*')
 				$updatedStatuses[$index] = tr_helper('contents', $status['text']);
 		}
 		return $updatedStatuses;
