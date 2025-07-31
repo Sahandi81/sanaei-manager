@@ -6,7 +6,7 @@ interface PanelInterface
 {
 	public function testConnection(): bool;
 	public function login(): ?bool;
-	public function getInbounds(): array;
+	public function getInbounds(): bool|array;
 	public function createUser(array $payload): bool;
 	public function disableInbound(int $id): bool;
 	public function rechargeInbound(int $id, int $expiryDays): bool;

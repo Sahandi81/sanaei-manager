@@ -228,6 +228,15 @@ return [
 		'investor_pwd'		=> 'پسورد سرمایه‌گذاری',
 		'begin_date'		=> 'از تاریخ',
 		'end_date'			=> 'تا تاریخ',
+		'remark'			=> 'نام',
+		'port'				=> 'پورت',
+		'protocol'			=> 'پروتکل',
+		'stream'			=> 'Stream',
+		'up'				=> 'آپلود',
+		'down'				=> 'دانلود',
+		'total'				=> 'مصرف کل',
+		'enable'			=> 'فعال',
+		'usage'				=> 'مصرف',
     ],
 
 	'input_placeholder' => [

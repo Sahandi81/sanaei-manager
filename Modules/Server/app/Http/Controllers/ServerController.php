@@ -3,7 +3,6 @@
 namespace Modules\Server\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -12,16 +11,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\Controller;
+use Modules\Server\Models\Inbound;
 use Modules\Server\Models\Server;
 use Modules\Server\Services\PanelFactory;
-use Modules\Logging\Services\LoggingService;
 use Modules\Server\Http\Requests\ServerRequest;
 
 class ServerController extends Controller
 {
-	public function __construct(protected LoggingService $logger)
-	{
-	}
 
 	public function index(): View|Factory|Application
 	{
@@ -89,44 +85,48 @@ class ServerController extends Controller
 
 	public function syncInbounds(Server $server): JsonResponse
 	{
-		$panel = PanelFactory::make($server);
+		try {
+			$panel = PanelFactory::make($server);
+			$inbounds = $panel->getInbounds();
+			if (!$inbounds)
+				throw new \Exception(tr_helper('contents', 'ServerDownOrWrongDetails'));
 
-		$live = $panel->testConnection();
-		$loggedIn = false;
-		$inbounds = [];
-
-		if ($live) {
-			$token = $panel->login();
-			if ($token) {
-				$server->update(['api_key' => $token]);
-				$loggedIn = true;
-
-				// Get inbounds
-				$inbounds = $panel->getInbounds();
-
-				// TODO: ذخیره‌سازی در دیتابیس
-				// e.g., Inbound::syncFromPanel($server, $inbounds);
+			foreach ($inbounds as $data) {
+				Inbound::query()->updateOrCreate([
+					'server_id' => $server->id,
+					'panel_inbound_id' => $data['id'],
+				], [
+					'port'      => $data['port'],
+					'protocol'  => $data['protocol'],
+					'stream'    => optional(json_decode($data['streamSettings'] ?? '{}', true))['network'] ?? null,
+					'up'        => $data['up'] ?? 0,
+					'down'      => $data['down'] ?? 0,
+					'total'     => $data['total'] ?? 0,
+					'enable'    => $data['enable'] ?? true,
+					'remark'    => $data['remark'] ?? null,
+					'raw'       => $data,
+				]);
 			}
+
+			$this->log('syncInbounds', 'Successfully synced inbounds for server', $server->id, [
+				'inbound_count' => count($inbounds),
+				'server_id' => $server->id,
+			]);
+
+			return response()->json([
+				'status' 		=> true,
+				'msg'			=> tr_helper('contents', 'SyncSuccessfully')
+			], 200);
+		} catch (\Throwable $e) {
+			$this->log('syncInbounds', 'Failed to sync inbounds for server', $server->id, [
+				'error' => $e->getMessage(),
+				'server_id' => $server->id,
+			]);
+			return response()->json([
+				'status' 		=> false,
+				'msg'			=> tr_helper('contents', 'InboundsSyncError')
+			],400);
 		}
-
-		// وضعیت سرور رو همزمان به‌روز کن
-		$this->updateServerStatus($server, $live, $loggedIn);
-
-		$this->log('syncInbounds', 'Synced inbounds from panel', $server->id, [
-			'live' => $live,
-			'login' => $loggedIn,
-			'inbounds_count' => count($inbounds),
-		]);
-
-		return response()->json([
-			'success' => $live && $loggedIn,
-			'live' => $live,
-			'login' => $loggedIn,
-			'inbounds' => $inbounds,
-			'msg' => $live && $loggedIn
-				? tr_helper('contents', 'InboundsSyncedSuccessfully')
-				: tr_helper('contents', 'CouldNotSyncInbounds'),
-		], $live && $loggedIn ? 200 : 400);
 	}
 
 
@@ -178,7 +178,6 @@ class ServerController extends Controller
 		$panel = PanelFactory::make($server);
 		$live = $panel->testConnection();
 		$loggedIn = false;
-
 		if ($live) {
 			$token = $panel->login();
 			if ($token) {
@@ -229,12 +228,6 @@ class ServerController extends Controller
 			: tr_helper('contents', 'ServerUpButWrongUsernameAndPass');
 	}
 
-	protected function log(string $action, string $message, int $serverId, array $extra = []): void
-	{
-		$this->logger->logInfo('Server', $action, $message, array_merge([
-			'server_id' => $serverId,
-			'user_id' => Auth::id(),
-		], $extra));
-	}
+
 
 }

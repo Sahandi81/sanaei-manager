@@ -1,4 +1,3 @@
-```php
 @extends('layouts/layoutMaster')
 @php($customPageName = tr_helper('contents', 'Edit') . ' ' . tr_helper('contents', 'Server'))
 
@@ -35,6 +34,54 @@
 @section('page-script')
 	<script>
 		document.addEventListener("DOMContentLoaded", function () {
+			document.querySelectorAll('.toggle-inbound').forEach(checkbox => {
+				checkbox.addEventListener('change', function() {
+					const inboundId = this.dataset.inboundId;
+					const isEnabled = this.checked;
+					const spinner = document.createElement('span');
+					spinner.className = 'spinner-border spinner-border-sm';
+
+					// Replace checkbox with spinner during request
+					this.parentNode.appendChild(spinner);
+					this.style.display = 'none';
+					const baseToggleUrl = `{{ route('api.v1.servers.inbounds.toggle', ['server' => $server->id, 'inbound' => 'INBOUND_ID']) }}`;
+					const finalUrl = baseToggleUrl.replace('INBOUND_ID', inboundId);
+					fetch(finalUrl, {
+						method: 'POST',
+						headers: {
+							'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							enable: isEnabled
+						}),
+						credentials: 'same-origin',
+					})
+						.then(response => response.json())
+						.then(data => {
+							if (data.success) {
+								showToast('success', data.message);
+							} else {
+								showToast('danger', data.message);
+								// Revert checkbox state if failed
+								this.checked = !isEnabled;
+							}
+						})
+						.catch(error => {
+							showToast('danger', 'Something went wrong');
+							console.error("Error:", error);
+							this.checked = !isEnabled;
+						})
+						.finally(() => {
+							spinner.remove();
+							this.style.display = 'block';
+						});
+				});
+			});
+
+
+			// اسکریپت برای دکمه TestConnection
 			const testConnectionBtn = document.getElementById('TestConnection');
 
 			testConnectionBtn.addEventListener('click', async function () {
@@ -49,14 +96,14 @@
 				testConnectionBtn.disabled = true;
 
 				try {
-					const response = await fetch(`/api/v1/servers/${serverId}/test-connection`, {
+					const response = await fetch(`{{ route('api.v1.servers.test_connection', $server->id) }}`, {
 						method: 'POST',
 						headers: {
 							'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
 							'Accept': 'application/json',
 							'Content-Type': 'application/json',
 						},
-						credentials: 'same-origin', // Important: sends session cookie for auth
+						credentials: 'same-origin',
 					});
 
 					const data = await response.json();
@@ -80,6 +127,47 @@
 					spinner.classList.add('d-none');
 					btnText.textContent = '{{ tr_helper("contents", "CheckConnection") ?? "Check Connection" }}';
 					testConnectionBtn.disabled = false;
+				}
+			});
+
+			// اسکریپت برای دکمه SyncInbounds
+			const SyncInbounds = document.getElementById('SyncInbounds');
+
+			SyncInbounds.addEventListener('click', async function () {
+				const serverId = "{{ $server->id }}";
+				const spinner = SyncInbounds.querySelector('.spinner-border');
+				const btnText = SyncInbounds.querySelector('.btn-text');
+				const statusSelect = document.querySelector('select[name="status"]');
+
+				// Start loading UI
+				spinner.classList.remove('d-none');
+				btnText.textContent = '{{ tr_helper('contents', 'Syncing') }}';
+				SyncInbounds.disabled = true;
+
+				try {
+					const response = await fetch(`{{ route('api.v1.servers.sync_inbounds', $server->id) }}`, {
+						method: 'POST',
+						headers: {
+							'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+						credentials: 'same-origin',
+					});
+					const data = await response.json();
+
+					if (response.ok) {
+						showToast('success', data.msg);
+					} else {
+						showToast('danger', data.msg);
+					}
+				} catch (error) {
+					showToast('danger', 'Something goes wrong. Call administrator. (t.me/Real_Sahandi81)');
+					console.error("Network Error:", error);
+				} finally {
+					spinner.classList.add('d-none');
+					btnText.textContent = '{{ tr_helper('contents', 'SyncInbounds') ?? 'Sync Inbounds' }}';
+					SyncInbounds.disabled = false;
 				}
 			});
 		});
@@ -114,8 +202,6 @@
 								name="ip"
 								type="text"
 								:value="$server->ip"
-								:disabled="true"
-								readonly
 								helpText="The server's IP address or domain"
 							/>
 
@@ -185,25 +271,83 @@
 								required
 							/>
 							<div class="col-12">
-								<div class="col-4 col-md-6 col-sm-12 d-flex justify-content-between flex-wrap btn-9rem">
+
+								<div class="col-12">
 									<button type="submit" class="btn btn-primary my-3 btn-9rem" data-submit-button>
 										<span class="btn-text"> {{ tr_helper('contents', 'Save') }} </span>
 										<span class="spinner-border spinner-border-sm d-none" role="status"
 											  aria-hidden="true"></span>
 									</button>
+								</div>
 
-									<button type="button" class="btn btn-success my-3 btn-9rem" id="TestConnection">
-										<span class="btn-text"> {{ tr_helper('contents', 'CheckConnection') }} </span>
+
+								<div class="col-lg-6 col-md-8 col-12 d-flex justify-content-end flex-wrap float-end">
+
+									<button type="button" class="btn btn-dark m-3 btn-15rem" id="TestConnection">
+										<span class="btn-text"> <i class="bx bx-link me-2"></i> {{ tr_helper('contents', 'CheckConnection') }} </span>
 										<span class="spinner-border spinner-border-sm d-none" role="status"
 											  aria-hidden="true"></span>
 									</button>
+
+									<button type="button" class="btn btn-dark m-3 btn-15rem" id="SyncInbounds">
+										<span class="btn-text"> <i class="bx bx-sync me-2"></i> {{ tr_helper('contents', 'SyncInbounds') ?? 'Sync Inbounds' }} </span>
+										<span class="spinner-border spinner-border-sm d-none" role="status"
+											  aria-hidden="true"></span>
+									</button>
+
 								</div>
 							</div>
 						</form>
 					</div>
 				</div>
 			</div>
+			@if (!empty($server->inbounds))
+				<div class="card mt-4">
+					<h5 class="card-header">{{ tr_helper('contents', 'AvailableInbounds') }}</h5>
+					<div class="table-responsive text-nowrap">
+						<table class="table">
+							<thead>
+							<tr>
+								<th>#</th>
+								<th>{{ tr_helper('validation', 'attributes.remark') }}</th>
+								<th>{{ tr_helper('validation', 'attributes.port') }}</th>
+								<th>{{ tr_helper('validation', 'attributes.protocol') }}</th>
+								<th>{{ tr_helper('validation', 'attributes.stream') }}</th>
+								<th>{{ tr_helper('validation', 'attributes.usage') }}</th>
+								<th>{{ tr_helper('validation', 'attributes.status') }}</th>
+							</tr>
+							</thead>
+							<tbody class="table-border-bottom-0">
+							@foreach ($server->inbounds as $inbound)
+								<tr>
+									<td>{{ $loop->iteration }}</td>
+									<td>{{ $inbound['remark'] }}</td>
+									<td>{{ $inbound['port'] }}</td>
+									<td>{{ strtoupper($inbound['protocol']) }}</td>
+									<td>{{ $inbound['streamSettings']['network'] ?? '-' }}</td>
+									<td>
+										@php($up = $inbound['up'] ?? 0)
+										@php($down = $inbound['down'] ?? 0)
+										@php($usage = $up + $down)
+										{{ formatBytes($usage) }}
+									</td>
+									<td>
+										<div class="form-check form-switch">
+											<input class="form-check-input toggle-inbound"
+												   type="checkbox"
+												   data-inbound-id="{{ $inbound['id'] }}"
+												   @if($inbound['enable'] ?? false) checked @endif>
+										</div>
+									</td>
+
+								</tr>
+							@endforeach
+							</tbody>
+						</table>
+					</div>
+				</div>
+			@endif
 		</div>
 	</div>
 @endsection
-```
+

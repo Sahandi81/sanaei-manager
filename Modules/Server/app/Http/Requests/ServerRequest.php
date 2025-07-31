@@ -57,6 +57,7 @@ class ServerRequest extends FormRequest
 			self::UPDATE_SERVER => [
 				'user_id'       	=> ['nullable'],
 				'name'          	=> ['required', 'string', 'min:3', 'max:255'],
+				'ip' 				=> ['required', 'string', 'ip'],
 				'api_url' 			=> ['required', 'string', 'url', 'min:10'],
 				'username' 	    	=> ['required', 'string', 'min:3', 'max:255'],
 				'password' 	    	=> ['nullable', 'string', 'min:3', 'max:255'],

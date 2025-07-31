@@ -72,21 +72,29 @@ class SanaeiPanel implements PanelInterface
 		}
 	}
 
-	public function getInbounds(): array
+	public function getInbounds(): bool|array
 	{
 		try {
 			if (!$this->login()) {
-				return [];
+				return false;
 			}
 
-			$response = $this->client->get('xui/inbounds', [
+			$response = $this->client->get('panel/api/inbounds/list', [
 				'cookies' => $this->cookieJar,
 			]);
+			$body = $response->getBody()->getContents();
+			$data = json_decode($body, true);
 
-			return json_decode($response->getBody(), true)['obj'] ?? [];
+			if (isset($data['success']) && $data['success']) {
+				return $data['obj'] ?? [];
+			}else{
+				throw new Exception("Failed to get inbounds. File: " . __FILE__ ." " . __LINE__);
+			}
+
+
 		} catch (Exception $e) {
-			$this->logger->logError('Sanaei', 'getInbounds', 'Failed to get inbounds', ['error' => $e->getMessage()]);
-			return [];
+			$this->logger->logError('Sanaei', 'getInbounds', 'Failed: ' . $e->getMessage());
+			return false;
 		}
 	}
 
