@@ -4,7 +4,7 @@
 		"name": "Servers",
 		"icon": "menu-icon tf-icons bx bx-server",
 		"slug": "servers",
-		"prefix": "panel.",
+		"prefix": "servers.",
 		"submenu": [
 			{
 				"url": "servers.index",
@@ -17,6 +17,24 @@
 				"slug": "servers.create"
 			}
       ]
+	},
+	  {
+		  "name": "Products",
+		  "icon": "menu-icon tf-icons bx bx-server",
+		  "slug": "products",
+		  "prefix": "products.",
+		  "submenu": [
+			  {
+				  "url": "products.index",
+				  "name": "List",
+				  "slug": "products.index"
+			  },
+			  {
+				  "url": "products.create",
+				  "name": "Create",
+				  "slug": "products.create"
+			  }
+		  ]
     },
     {
       	"menuHeader": "Apps & Pages"

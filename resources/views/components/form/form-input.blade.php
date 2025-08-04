@@ -48,33 +48,60 @@
 			'message' => tr_helper('validation', 'attributes.confirmed', $name)
 		];
 	}
-
+    $selectedValues = old($name, $value ?? []);
+    if (!is_array($selectedValues)) {
+        $selectedValues = [$selectedValues];
+    }
 	$validationRules = array_merge($autoValidation, $validation);
 @endphp
 
 <div class="{{ $col }}" data-field-container>
-	@if(!in_array($type, ['radio', 'chackbox']))
-		<label class="form-label" for="{{ $name }}">
+	{{-- Show label for all input types except standalone checkboxes/radios --}}
+	@if(!in_array($type, ['checkbox', 'radio']) || ($type === 'select' && $multiple))
+		<label class="form-label @if($type === 'select' && $multiple)d-block @endif" for="{{ $type === 'select' && $multiple ? '' : $name }}">
 			{{ $label ?? tr_helper('validation', 'attributes.'.$name) }}
 			@if($required) <span class="text-danger">*</span> @endif
 		</label>
 	@endif
 
-	@if($type === 'select')
+	@if($type === 'select' && $multiple)
+		{{-- Checkbox group for multiple select --}}
+		<div class="border rounded p-3">
+			<div class="row">
+				@foreach($options as $key => $option)
+					<div class="col-md-6 mb-2">
+						<div class="form-check">
+							<input type="checkbox"
+								   id="{{ $name }}_{{ $key }}"
+								   class="form-check-input"
+								   name="{{ $name }}[]"
+								   value="{{ $key }}"
+								   @checked(in_array($key, $selectedValues))
+								   @if($disabled) disabled @endif
+								   @if($readonly) readonly @endif
+								   data-validation-rules="{{ json_encode($validationRules) }}" />
+							<label class="form-check-label" for="{{ $name }}_{{ $key }}">
+								{{ $option }}
+							</label>
+						</div>
+					</div>
+				@endforeach
+			</div>
+		</div>
+	@elseif($type === 'select')
+		{{-- Regular single select --}}
 		<select id="{{ $name }}"
 				class="form-select"
-				name="{{ $name }}{{ $multiple ? '[]' : '' }}"
-				@if($multiple) multiple @endif
+				name="{{ $name }}"
 				@if($disabled) disabled @endif
 				@if($readonly) readonly @endif
 				data-validation-rules="{{ json_encode($validationRules) }}"
 				@if($autocomplete) autocomplete="{{ $autocomplete }}" @endif>
-			@if($default && !$multiple)
+			@if($default)
 				<option value="" {{ $defaultDisabled == 'true' ? 'disabled' : '' }} selected>{{ $default }}</option>
 			@endif
 			@foreach($options as $key => $option)
-				<option value="{{ $key }}"
-					@selected(in_array($key, (array)old($name, $value)) || (!is_array(old($name, $value)) && $key === old($name, $value)))>
+				<option value="{{ $key }}" @selected(in_array($key, $selectedValues))>
 					{{ $option }}
 				</option>
 			@endforeach

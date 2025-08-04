@@ -20,3 +20,16 @@
 .alert.fade-out {
 	opacity: 0;
 }
+/* Custom checkbox group styling */
+.bg-light {
+	background-color: #f8f9fa!important;
+}
+.form-check {
+	padding-left: 1.5em;
+}
+.form-check-input {
+	margin-left: -1.5em;
+}
+.form-check-label {
+	cursor: pointer;
+}

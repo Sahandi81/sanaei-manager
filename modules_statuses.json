@@ -1,5 +1,7 @@
 {
     "Permission": true,
     "Server": true,
-    "Logging": true
+    "Logging": true,
+    "TrafficSyncer": true,
+    "Shop": true
 }

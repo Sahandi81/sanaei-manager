@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\Controller;
+use Modules\Logging\Traits\Loggable;
 use Modules\Server\Models\Inbound;
 use Modules\Server\Models\Server;
 use Modules\Server\Services\PanelFactory;
@@ -18,10 +19,11 @@ use Modules\Server\Http\Requests\ServerRequest;
 
 class ServerController extends Controller
 {
+	use Loggable;
 
 	public function index(): View|Factory|Application
 	{
-		$servers = Server::query()->latest()->paginate(2);
+		$servers = Server::paginate();
 		return view('server::servers.list', compact('servers'));
 	}
 
@@ -39,13 +41,12 @@ class ServerController extends Controller
 		$fields['password'] = Crypt::encryptString($fields['password']);
 
 		$server = Server::query()->create($fields);
-		$this->log('store', 'Created new server', $server->id);
+		$this->logInfo('store', 'Created new server', ['server_id' => $server->id]);
 
 		$testConnection = $this->handleConnection($server);
-		if (!$testConnection['live'] && !$testConnection['login']){
+		if (!$testConnection['live'] && !$testConnection['login']) {
 			return redirect()->back()->with('error_msg', tr_helper('contents', 'ChangesSavedButCheckConnection'));
 		}
-
 
 		return redirect()->route('servers.index')
 			->with('success_msg', tr_helper('contents', 'SuccessfullyCreated'));
@@ -70,18 +71,25 @@ class ServerController extends Controller
 		}
 
 		$server->update($fields);
-		$this->log('update', 'Updated server info', $server->id);
+		$this->logInfo('update', 'Updated server info', ['server_id' => $server->id]);
 
 		$testConnection = $this->handleConnection($server->refresh());
-		if (!$testConnection['live'] && !$testConnection['login']){
+		if (!$testConnection['live'] && !$testConnection['login']) {
 			return redirect()->back()->with('error_msg', tr_helper('contents', 'ChangesSavedButCheckConnection'));
 		}
-
 
 		return redirect()->route('servers.index')
 			->with('success_msg', tr_helper('contents', 'SuccessfullyUpdated'));
 	}
 
+	public function destroy(Server $server): RedirectResponse
+	{
+		$server->delete();
+		$this->logInfo('destroy', 'Deleted server', ['server_id' => $server->id]);
+
+		return redirect()->back()
+			->with('success_msg', tr_helper('contents', 'SuccessfullyDeleted'));
+	}
 
 	public function syncInbounds(Server $server): JsonResponse
 	{
@@ -108,70 +116,39 @@ class ServerController extends Controller
 				]);
 			}
 
-			$this->log('syncInbounds', 'Successfully synced inbounds for server', $server->id, [
+			$this->logInfo('syncInbounds', 'Successfully synced inbounds', [
 				'inbound_count' => count($inbounds),
 				'server_id' => $server->id,
 			]);
 
 			return response()->json([
-				'status' 		=> true,
-				'msg'			=> tr_helper('contents', 'SyncSuccessfully')
+				'status' => true,
+				'msg' => tr_helper('contents', 'SyncSuccessfully'),
 			], 200);
 		} catch (\Throwable $e) {
-			$this->log('syncInbounds', 'Failed to sync inbounds for server', $server->id, [
+			$this->logError('syncInbounds', 'Failed to sync inbounds', [
 				'error' => $e->getMessage(),
 				'server_id' => $server->id,
 			]);
+
 			return response()->json([
-				'status' 		=> false,
-				'msg'			=> tr_helper('contents', 'InboundsSyncError')
-			],400);
+				'status' => false,
+				'msg' => tr_helper('contents', 'InboundsSyncError'),
+			], 400);
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	public function destroy(Server $server): RedirectResponse
-	{
-		$server->delete();
-		$this->log('destroy', 'Deleted server', $server->id);
-
-		return redirect()->route('servers.index')
-			->with('success_msg', tr_helper('contents', 'SuccessfullyDeleted'));
-	}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////Private Methods/////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public function testConnection(Server $server): JsonResponse
 	{
 		$result = $this->handleConnection($server);
 
 		return response()->json([
-			'live' 			=> $result['live'],
-			'login' 		=> $result['login'],
-			'msg' 			=> $this->getConnectionMessage($result['live'], $result['login']),
+			'live' => $result['live'],
+			'login' => $result['login'],
+			'msg' => $this->getConnectionMessage($result['live'], $result['login']),
 			'server_status' => $result['server_status'],
 		], $result['live'] && $result['login'] ? 200 : 400);
 	}
-
-
 
 	private function handleConnection(Server $server): array
 	{
@@ -186,35 +163,36 @@ class ServerController extends Controller
 			}
 		}
 
-		$newServerStatus = $this->updateServerStatus($server, $live, $loggedIn);
+		$newStatus = $this->updateServerStatus($server, $live, $loggedIn);
 
-		$this->log('handleConnection', 'Auto checked panel connection on create/update', $server->id, [
+		$this->logInfo('handleConnection', 'Checked panel connection', [
 			'live' => $live,
 			'login' => $loggedIn,
-			'status' => $newServerStatus
+			'status' => $newStatus,
+			'server_id' => $server->id,
 		]);
 
 		return [
 			'live' => $live,
 			'login' => $loggedIn,
-			'server_status' => $newServerStatus,
+			'server_status' => $newStatus,
 		];
 	}
 
 	private function updateServerStatus(Server $server, bool $live, bool $loggedIn): int
 	{
-		$currentStatus = $server->status;
-		$newStatus = match ($currentStatus) {
-			0, 2 => $live && $loggedIn ? 1 : $currentStatus,
-			1 => !$live || !$loggedIn ? 2 : $currentStatus,
-			default => $currentStatus,
+		$current = $server->status;
+		$new = match ($current) {
+			0, 2 => $live && $loggedIn ? 1 : $current,
+			1    => !$live || !$loggedIn ? 2 : $current,
+			default => $current,
 		};
 
-		if ($newStatus !== $currentStatus) {
-			$server->update(['status' => $newStatus]);
+		if ($new !== $current) {
+			$server->update(['status' => $new]);
 		}
 
-		return $newStatus;
+		return $new;
 	}
 
 	private function getConnectionMessage(bool $live, bool $loggedIn): string
@@ -227,7 +205,4 @@ class ServerController extends Controller
 			? tr_helper('contents', 'SuccessConnection')
 			: tr_helper('contents', 'ServerUpButWrongUsernameAndPass');
 	}
-
-
-
 }

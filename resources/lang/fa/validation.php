@@ -237,6 +237,13 @@ return [
 		'total'				=> 'مصرف کل',
 		'enable'			=> 'فعال',
 		'usage'				=> 'مصرف',
+		'product'			=> 'محصول',
+		'traffic_gb'		=> 'ترافیک (GB)',
+		'duration_days'		=> 'مدت زمان (روز)',
+		'user_limit'		=> 'محدودیت تعداد کاربر',
+		'is_test'			=> 'نوع محصول',
+		'parent_id'			=> 'اصل محصول',
+		'servers'			=> 'سرورها',
     ],
 
 	'input_placeholder' => [

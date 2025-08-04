@@ -6,20 +6,22 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Support\Facades\Crypt;
-use Modules\Logging\Services\LoggingService;
+use Modules\Logging\Traits\Loggable;
 use Modules\Server\Contracts\PanelInterface;
 use Modules\Server\Models\Server;
 
 class SanaeiPanel implements PanelInterface
 {
+	use Loggable;
+
 	protected Server $server;
 	protected Client $client;
-	protected LoggingService $logger;
 	protected CookieJar $cookieJar;
 
 	public function __construct(Server $server)
 	{
 		$this->server = $server;
+
 		$this->client = new Client([
 			'base_uri' => $this->server->api_url,
 			'timeout'  => 5.0,
@@ -27,7 +29,6 @@ class SanaeiPanel implements PanelInterface
 		]);
 
 		$this->cookieJar = new CookieJar();
-		$this->logger = app(LoggingService::class);
 	}
 
 	public function testConnection(): bool
@@ -36,15 +37,15 @@ class SanaeiPanel implements PanelInterface
 			$response = $this->client->get('xui/inbounds');
 			return $response->getStatusCode() === 200;
 		} catch (Exception $e) {
-			$this->logger->logError('Sanaei', 'testConnection', 'Connection failed', [
+			$this->logError('testConnection', 'Connection failed', [
 				'error' => $e->getMessage(),
-				'server' => $this->server->id,
+				'server_id' => $this->server->id,
 			]);
 			return false;
 		}
 	}
 
-	public function login(): bool
+	public function login(): bool|string
 	{
 		try {
 			$password = Crypt::decryptString($this->server->password);
@@ -62,11 +63,13 @@ class SanaeiPanel implements PanelInterface
 			if (!($data['success'] ?? false)) {
 				throw new Exception($data['msg'] ?? 'Unknown error');
 			}
+
+			// optional: return session cookie or true
 			return true;
 		} catch (Exception $e) {
-			$this->logger->logError('Sanaei', 'login', 'Login failed', [
+			$this->logError('login', 'Login failed', [
 				'error' => $e->getMessage(),
-				'server' => $this->server->id,
+				'server_id' => $this->server->id,
 			]);
 			return false;
 		}
@@ -82,18 +85,20 @@ class SanaeiPanel implements PanelInterface
 			$response = $this->client->get('panel/api/inbounds/list', [
 				'cookies' => $this->cookieJar,
 			]);
-			$body = $response->getBody()->getContents();
-			$data = json_decode($body, true);
+
+			$data = json_decode($response->getBody()->getContents(), true);
 
 			if (isset($data['success']) && $data['success']) {
 				return $data['obj'] ?? [];
-			}else{
-				throw new Exception("Failed to get inbounds. File: " . __FILE__ ." " . __LINE__);
 			}
 
+			throw new Exception("Failed to get inbounds. File: " . __FILE__ . " Line: " . __LINE__);
 
 		} catch (Exception $e) {
-			$this->logger->logError('Sanaei', 'getInbounds', 'Failed: ' . $e->getMessage());
+			$this->logError('getInbounds', 'Fetching inbounds failed', [
+				'error' => $e->getMessage(),
+				'server_id' => $this->server->id,
+			]);
 			return false;
 		}
 	}
@@ -112,7 +117,10 @@ class SanaeiPanel implements PanelInterface
 
 			return $response->getStatusCode() === 200;
 		} catch (Exception $e) {
-			$this->logger->logError('Sanaei', 'createUser', 'User creation failed', ['error' => $e->getMessage()]);
+			$this->logError('createUser', 'User creation failed', [
+				'error' => $e->getMessage(),
+				'server_id' => $this->server->id,
+			]);
 			return false;
 		}
 	}
@@ -134,7 +142,11 @@ class SanaeiPanel implements PanelInterface
 
 			return $response->getStatusCode() === 200;
 		} catch (Exception $e) {
-			$this->logger->logError('Sanaei', 'disableInbound', 'Disabling failed', ['error' => $e->getMessage()]);
+			$this->logError('disableInbound', 'Disabling inbound failed', [
+				'error' => $e->getMessage(),
+				'inbound_id' => $id,
+				'server_id' => $this->server->id,
+			]);
 			return false;
 		}
 	}
@@ -156,7 +168,12 @@ class SanaeiPanel implements PanelInterface
 
 			return $response->getStatusCode() === 200;
 		} catch (Exception $e) {
-			$this->logger->logError('Sanaei', 'rechargeInbound', 'Recharge failed', ['error' => $e->getMessage()]);
+			$this->logError('rechargeInbound', 'Recharge failed', [
+				'error' => $e->getMessage(),
+				'inbound_id' => $id,
+				'days' => $expiryDays,
+				'server_id' => $this->server->id,
+			]);
 			return false;
 		}
 	}

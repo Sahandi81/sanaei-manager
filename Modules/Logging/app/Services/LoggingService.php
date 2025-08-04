@@ -17,6 +17,12 @@ class LoggingService
 		string $level = 'info'
 	): void {
 		try {
+			if (!$module) {
+				$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+				$caller = class_basename($trace[1]['class'] ?? 'UnknownModule');
+				$module = $caller;
+			}
+
 			Logging::query()->create([
 				'module' => $module,
 				'action' => $action,
@@ -27,15 +33,8 @@ class LoggingService
 			]);
 
 		} catch (Exception $e) {
-			// Fallback to default Laravel log if database logging fails
 			Log::error("Failed to save log entry: " . $e->getMessage(), [
-				'original_log' => [
-					'module' => $module,
-					'action' => $action,
-					'message' => $message,
-					'context' => $context,
-					'level' => $level,
-				]
+				'original_log' => compact('module', 'action', 'message', 'context', 'level'),
 			]);
 		}
 	}
