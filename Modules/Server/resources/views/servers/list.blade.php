@@ -18,6 +18,7 @@
 							<tr>
 								<th>#</th>
 								<th> {{tr_helper('validation', 'attributes.name')}} </th>
+								<th> {{tr_helper('validation', 'attributes.user_id')}} </th>
 								<th> {{tr_helper('validation', 'attributes.ip')}} </th>
 								<th> {{tr_helper('validation', 'attributes.location')}} </th>
 								<th> {{tr_helper('validation', 'attributes.panel_type')}} </th>
@@ -32,6 +33,7 @@
 								<tr>
 									<td>{{ $loop->iteration }}</td>
 									<td>{{ $server->name }}</td>
+									<td><a href="#{{-- route('users.edit',  $client->user->id ) --}}">{{ $server->user?->name }}</a></td>
 									<td>{{ $server->ip }}</td>
 									<td>{{ $server->location ?? '-' }}</td>
 									<td>{{ ucfirst($server->panel_type) }}</td>

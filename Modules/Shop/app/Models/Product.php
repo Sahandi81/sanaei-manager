@@ -26,11 +26,17 @@ class Product extends Model
 		'parent_id',
 	];
 
-	public static function getActiveProducts(): Collection
+	public static function getActiveProducts($userID = null): Collection
 	{
 		$userAdminStatus = Auth::user()->role->is_admin;
 		if ($userAdminStatus) {
-			return self::query()->where('is_active', 1)->get();
+			return self::query()->where('is_active', 1)
+				->tap(function ($q) use ($userID){
+					if ($userID){
+						$q->where('user_id', $userID);
+					}
+				})
+				->get();
 		}else{
 			return self::query()
 				->where('user_id', Auth::id())

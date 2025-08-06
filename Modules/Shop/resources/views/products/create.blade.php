@@ -44,7 +44,7 @@
 				<div class="card">
 					<h5 class="card-header">{{ $customPageName }}</h5>
 					<div class="card-body">
-						<form id="productForm" method="POST" action="{{ route('products.store') }}" class="row g-3" data-dynamic-validation>
+						<form id="productForm" method="POST" action="{{ route('shop.products.store') }}" class="row g-3" data-dynamic-validation>
 							@csrf
 							<input type="hidden" name="form" value="CREATE">
 

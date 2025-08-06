@@ -52,7 +52,7 @@ class ProductController extends Controller
 			'is_test' => $product->is_test,
 		]);
 
-		return redirect()->route('products.index')->with('success', 'Product created');
+		return redirect()->route('shop.products.index')->with('success_msg', tr_helper('contents', 'SuccessfullyCreated'));
 	}
 
 	public function edit(Product $product): Factory|Application|View
@@ -77,7 +77,7 @@ class ProductController extends Controller
 			'product_id' => $product->id,
 		]);
 
-		return redirect()->route('products.index')->with('success', 'Product updated');
+		return redirect()->route('shop.products.index')->with('success_msg',  tr_helper('contents', 'SuccessfullyUpdated'));
 	}
 
 	public function destroy(Product $product): RedirectResponse

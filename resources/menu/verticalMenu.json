@@ -1,50 +1,86 @@
 {
-  "menu": [
-    {
-		"name": "Servers",
-		"icon": "menu-icon tf-icons bx bx-server",
-		"slug": "servers",
-		"prefix": "servers.",
-		"submenu": [
-			{
-				"url": "servers.index",
-				"name": "List",
-				"slug": "servers.index"
-			},
-			{
-				"url": "servers.create",
-				"name": "Create",
-				"slug": "servers.create"
-			}
-      ]
-	},
-	  {
-		  "name": "Products",
-		  "icon": "menu-icon tf-icons bx bx-server",
-		  "slug": "products",
-		  "prefix": "products.",
-		  "submenu": [
-			  {
-				  "url": "products.index",
-				  "name": "List",
-				  "slug": "products.index"
-			  },
-			  {
-				  "url": "products.create",
-				  "name": "Create",
-				  "slug": "products.create"
-			  }
-		  ]
-    },
-    {
-      	"menuHeader": "Apps & Pages"
-    },
-    {
-		"url": "panel.index",
-		"name": "Email",
-		"prefix": "panel.",
-		"icon": "menu-icon tf-icons bx bx-envelope",
-		"slug": "servers/create"
-    }
-  ]
+	"menu": [
+		{
+			"name": "Servers",
+			"icon": "menu-icon tf-icons bx bx-server",
+			"slug": "servers",
+			"prefix": "servers.",
+			"submenu": [
+				{
+					"url": "servers.index",
+					"name": "List",
+					"slug": "servers.index"
+				},
+				{
+					"url": "servers.create",
+					"name": "Create",
+					"slug": "servers.create"
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"icon": "menu-icon tf-icons bx bx-shopping-bag",
+			"slug": "shop.products",
+			"prefix": "shop.products.",
+			"submenu": [
+				{
+					"url": "shop.products.index",
+					"name": "List",
+					"slug": "shop.products.index"
+				},
+				{
+					"url": "shop.products.create",
+					"name": "Create",
+					"slug": "shop.products.create"
+				}
+			]
+		},
+		{
+			"name": "Clients",
+			"icon": "menu-icon tf-icons bx bx-group",
+			"slug": "clients",
+			"prefix": "clients.",
+			"submenu": [
+				{
+					"url": "clients.index",
+					"name": "List",
+					"slug": "clients.index"
+				},
+				{
+					"url": "clients.create",
+					"name": "Create",
+					"slug": "clients.create"
+				}
+			]
+		},
+		{
+			"menuHeader": "Finance"
+		},
+		{
+			"name": "Transactions",
+			"icon": "menu-icon tf-icons bx bx-group",
+			"slug": "finance.transactions",
+			"prefix": "finance.transactions.",
+			"submenu": [
+				{
+					"url": "finance.transactions.index",
+					"name": "List",
+					"slug": "finance.transactions.index"
+				},
+				{
+					"url": "finance.transactions.create",
+					"name": "Create",
+					"slug": "finance.transactions.create"
+				}
+			]
+		},
+		{
+			"url": "panel.index",
+			"name": "Email",
+			"prefix": "panel.",
+			"icon": "menu-icon tf-icons bx bx-envelope",
+			"slug": "servers/create"
+		}
+	]
 }

@@ -37,7 +37,7 @@
 			{{-- menu headers --}}
 			@if (isset($menu->menuHeader))
 				<li class="menu-header small text-uppercase">
-					<span class="menu-header-text">{{ tr_helper('contents', $menu->menuHeader) }}</span>
+					<span class="menu-header-text">{{ tr_helper('contents', tr_helper('contents',$menu->menuHeader)) }}</span>
 				</li>
 
 			@else

@@ -17,6 +17,16 @@ trait Loggable
 			'info'
 		);
 	}
+	protected function logDebug(string $action, string $message, array $context = [], string $module = ''): void
+	{
+		app(LoggingService::class)->log(
+			$module ?: $this->getLogModuleName(),
+			$action,
+			$message,
+			array_merge(['user_id' => Auth::id()], $context),
+			'debug'
+		);
+	}
 
 	protected function logError(string $action, string $message, array $context = [], string $module = ''): void
 	{

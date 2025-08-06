@@ -4,9 +4,12 @@ namespace $CLASS_NAMESPACE$;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Logging\Traits\Loggable;
 
 class $CLASS$ extends Controller
 {
+	use Loggable;
+
     /**
      * Display a listing of the resource.
      */

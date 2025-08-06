@@ -3,5 +3,8 @@
     "Server": true,
     "Logging": true,
     "TrafficSyncer": true,
-    "Shop": true
+    "Shop": true,
+    "Client": true,
+    "Finance": true,
+    "FileManager": true
 }

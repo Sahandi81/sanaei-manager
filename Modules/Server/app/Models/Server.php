@@ -2,8 +2,10 @@
 
 namespace Modules\Server\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -93,9 +95,20 @@ class Server extends Model
 
 
 
+	public function user(): BelongsTo
+	{
+		return $this->belongsTo(User::class);
+	}
 	public function inbounds(): HasMany
 	{
 		return $this->hasMany(Inbound::class);
+	}
+
+	public function activeInbounds(): HasMany
+	{
+		return $this->inbounds()->tap(function ($q){
+			$q->where('status', 1);
+		});
 	}
 
 }

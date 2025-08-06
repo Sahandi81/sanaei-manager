@@ -33,3 +33,10 @@
 .form-check-label {
 	cursor: pointer;
 }
+.dropzone {
+	transition: background-color 0.2s ease;
+}
+.file-preview img {
+	object-fit: contain;
+	width: 100%;
+}

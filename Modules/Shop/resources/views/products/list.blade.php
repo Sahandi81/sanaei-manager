@@ -13,7 +13,7 @@
 				<div class="card">
 					<h5 class="card-header d-flex justify-content-between align-items-center">
 						{{ $customPageName }}
-						<a href="{{ route('products.create') }}" class="btn btn-sm btn-primary">
+						<a href="{{ route('shop.products.create') }}" class="btn btn-sm btn-primary">
 							<i class="bx bx-plus"></i> {{ tr_helper('contents', 'Create') }}
 						</a>
 					</h5>
@@ -23,6 +23,7 @@
 							<tr>
 								<th>#</th>
 								<th>{{ tr_helper('validation', 'attributes.name') }}</th>
+								<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.traffic_gb') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.duration_days') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.price') }}</th>
@@ -38,6 +39,7 @@
 								<tr>
 									<td>{{ $loop->iteration }}</td>
 									<td>{{ $product->name }}</td>
+									<td><a href="#{{-- route('users.edit',  $client->user->id ) --}}">{{ $product->user?->name }}</a></td>
 									<td>{{ $product->traffic_gb }} GB</td>
 									<td>{{ $product->duration_days }} days</td>
 									<td>{{ number_format($product->price) }} Toman</td>
@@ -64,7 +66,7 @@
 											</button>
 											<div class="dropdown-menu">
 												<a class="dropdown-item"
-												   href="{{ route('products.edit', $product->id) }}">
+												   href="{{ route('shop.products.edit', $product->id) }}">
 													<i class="bx bx-edit-alt me-1"></i> {{ tr_helper('contents', 'Edit') }}
 												</a>
 												<button type="button"
@@ -72,7 +74,7 @@
 														class="dropdown-item text-danger open-delete-modal"
 														data-bs-target="#deleteModal"
 														data-item-name="{{ $product->name }}"
-														data-delete-route="{{ route('products.destroy', $product->id) }}">
+														data-delete-route="{{ route('shop.products.destroy', $product->id) }}">
 													<i class="bx bx-trash me-1"></i> {{ tr_helper('contents', 'Delete') }}
 												</button>
 											</div>

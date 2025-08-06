@@ -45,7 +45,7 @@ class SanaeiPanel implements PanelInterface
 		}
 	}
 
-	public function login(): bool|string
+	public function login(): ?bool
 	{
 		try {
 			$password = Crypt::decryptString($this->server->password);
