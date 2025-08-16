@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Modules\Permission\App\Models\Role;
 use Modules\Shop\Models\Product;
 
@@ -30,6 +32,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role_key',
+        'telegram_bot_token',
+        'telegram_webhook',
     ];
 
     /**
@@ -45,6 +49,16 @@ class User extends Authenticatable
 	public static function getActiveUsers(): Collection
 	{
 		return self::query()->where('status', 1)->get();
+	}
+
+	public static function paginate($perPage = 25): LengthAwarePaginator
+	{
+		$userAdminStatus = Auth::user()->role->is_admin;
+		if ($userAdminStatus){
+			return self::query()->latest()->paginate($perPage);
+		}else {
+			return self::query()->where('user_id', Auth::id())->latest()->paginate($perPage);
+		}
 	}
 
 	/**

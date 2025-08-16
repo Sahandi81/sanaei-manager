@@ -76,11 +76,25 @@
 			]
 		},
 		{
-			"url": "panel.index",
-			"name": "Email",
-			"prefix": "panel.",
-			"icon": "menu-icon tf-icons bx bx-envelope",
-			"slug": "servers/create"
+			"menuHeader": "SystemUSettings"
+		},
+		{
+			"name": "Users",
+			"icon": "menu-icon tf-icons bx bx-users",
+			"slug": "panel.users",
+			"prefix": "panel.users.",
+			"submenu": [
+				{
+					"url": "panel.users.index",
+					"name": "List",
+					"slug": "panel.users.index"
+				},
+				{
+					"url": "panel.users.create",
+					"name": "Create",
+					"slug": "panel.users.create"
+				}
+			]
 		}
 	]
 }

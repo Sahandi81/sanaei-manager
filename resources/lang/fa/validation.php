@@ -224,6 +224,8 @@ return [
 		'container_port'	=> 'port کانتینر',
 		'demo_create_account_method'	=> 'نحوه ساخت حساب دمو',
 		'real_create_account_method'	=> 'نحوه ساخت حساب ریل',
+		'telegram_bot_token'=> 'توکن ربات تلگرام',
+		'telegram_webhook'	=> 'آدرس انحصاری وبهوک',
 		'rejection_reason'	=> 'دلیل رد شدن',
 		'real_server'		=> 'سرور ریل',
 		'modified_by'		=> 'تغییریافته توسط',

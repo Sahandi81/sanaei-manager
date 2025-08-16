@@ -158,6 +158,7 @@
 
 					if (response.ok) {
 						showToast('success', data.msg);
+						location.reload();
 					} else {
 						showToast('danger', data.msg);
 					}
@@ -172,6 +173,7 @@
 			});
 		});
 	</script>
+
 @endsection
 
 @section('content')
@@ -336,7 +338,7 @@
 											<input class="form-check-input toggle-inbound"
 												   type="checkbox"
 												   data-inbound-id="{{ $inbound['id'] }}"
-												   @if($inbound['enable'] ?? false) checked @endif>
+												   @if($inbound['status'] ?? false) checked @endif>
 										</div>
 									</td>
 

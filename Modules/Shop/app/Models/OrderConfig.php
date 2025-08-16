@@ -14,14 +14,15 @@ class OrderConfig extends Model
 	protected $fillable = [
 		'server_id',
 		'inbound_id',
+		'panel_email',
 		'order_id',
+		'used_traffic_gb',
 		'client_id',
 		'config',
 		'expires_at'
 	];
 
 	protected $casts = [
-		'config' => 'array',
 		'expires_at' => 'datetime'
 	];
 

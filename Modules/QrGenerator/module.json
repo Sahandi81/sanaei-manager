@@ -1,0 +1,11 @@
+{
+    "name": "QrGenerator",
+    "alias": "qrgenerator",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\QrGenerator\\Providers\\QrGeneratorServiceProvider"
+    ],
+    "files": []
+}

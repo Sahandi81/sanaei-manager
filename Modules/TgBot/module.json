@@ -1,0 +1,11 @@
+{
+    "name": "TgBot",
+    "alias": "tgbot",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\TgBot\\Providers\\TgBotServiceProvider"
+    ],
+    "files": []
+}

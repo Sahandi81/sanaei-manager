@@ -142,10 +142,58 @@
 								</button>
 							</div>
 						</form>
+						<div class="col-12">
+							<button type="button" id="syncConfigsBtn" class="btn btn-success mt-2 float-end" data-submit-button="" style="max-width: 14rem">
+								<span class="btn-text">{{ tr_helper('contents', 'SyncConfigs') }}</span>
+								<i class="bx bx-sync"></i>
+								<span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+		<script>
+			const syncConfigsBtn = document.getElementById('syncConfigsBtn');
 
+			syncConfigsBtn.addEventListener('click', async function () {
+				const productId = "{{ $product->id }}";
+				const spinner = syncConfigsBtn.querySelector('.spinner-border');
+				const btnText = syncConfigsBtn.querySelector('.btn-text');
+
+				// Start loading UI
+				spinner.classList.remove('d-none');
+				btnText.textContent = '{{ tr_helper("contents", "Syncing") ?? "Syncing..." }}';
+				syncConfigsBtn.disabled = true;
+
+				try {
+					const response = await fetch(`{{ route('shop.products.syncConfigs', $product->id) }}`, {
+						method: 'POST',
+						headers: {
+							'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+						credentials: 'same-origin',
+					});
+
+					const data = await response.json();
+
+					if (response.ok) {
+						showToast('success', data.msg);
+					} else {
+						showToast('warning', data.msg);
+					}
+				} catch (error) {
+					showToast('danger', 'Something goes wrong. Call administrator. (t.me/Real_Sahandi81)');
+					console.error("Network Error:", error);
+				} finally {
+					// Stop loading UI
+					spinner.classList.add('d-none');
+					btnText.textContent = '{{ tr_helper("contents", "SyncConfigs") ?? "Sync Configs" }}';
+					syncConfigsBtn.disabled = false;
+				}
+			});
+		</script>
 	</div>
 @endsection

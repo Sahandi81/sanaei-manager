@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/qrgenerator",
+    "description": "",
+    "authors": [
+        {
+            "name": "Sahandi81",
+            "email": "sahandi81.rahmatpanah@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\QrGenerator\\": "app/",
+            "Modules\\QrGenerator\\Database\\Factories\\": "database/factories/",
+            "Modules\\QrGenerator\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\QrGenerator\\Tests\\": "tests/"
+        }
+    }
+}

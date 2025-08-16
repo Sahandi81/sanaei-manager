@@ -117,6 +117,7 @@
 									<th>{{ tr_helper('validation', 'attributes.purchase_date') }}</th>
 									<th>{{ tr_helper('validation', 'attributes.expires_at') }}</th>
 									<th>{{ tr_helper('validation', 'attributes.status') }}</th>
+									<th>{{ tr_helper('contents', 'Actions') }}</th>
 								</tr>
 								</thead>
 								<tbody>
@@ -134,6 +135,17 @@
 											<span class="badge bg-label-{{ $status['status'] }}">
 											{{ $status['text'] }}
 										</span>
+										</td>
+										<td>
+											@if($order->qr_path)
+												<button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+														data-bs-target="#qrModal"
+														data-qr-url="{{ asset('storage/' . $order->qr_path) }}"
+														data-subs="{{ route('shop.orders.subs', $order->subs) }}">
+													<i class="bx bx-qr-scan"></i>
+												</button>
+											@endif
+
 										</td>
 									</tr>
 								@endforeach
@@ -205,7 +217,7 @@
 				</form>
 			</div>
 		</div>
-
+		<!-- END QR Code Modal -->
 		<script>
 			document.addEventListener('DOMContentLoaded', function () {
 				$('select[name="product_id"]').change(function () {
@@ -217,5 +229,7 @@
 			});
 		</script>
 	</div>
+
+	@include('client::qrModal')
 @endsection
 

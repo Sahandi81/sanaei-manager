@@ -44,6 +44,7 @@ class ServerController extends Controller
 		$this->logInfo('store', 'Created new server', ['server_id' => $server->id]);
 
 		$testConnection = $this->handleConnection($server);
+		$this->syncInbounds($server);
 		if (!$testConnection['live'] && !$testConnection['login']) {
 			return redirect()->back()->with('error_msg', tr_helper('contents', 'ChangesSavedButCheckConnection'));
 		}
@@ -74,6 +75,7 @@ class ServerController extends Controller
 		$this->logInfo('update', 'Updated server info', ['server_id' => $server->id]);
 
 		$testConnection = $this->handleConnection($server->refresh());
+		$this->syncInbounds($server);
 		if (!$testConnection['live'] && !$testConnection['login']) {
 			return redirect()->back()->with('error_msg', tr_helper('contents', 'ChangesSavedButCheckConnection'));
 		}

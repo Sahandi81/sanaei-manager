@@ -75,3 +75,13 @@ if (!function_exists('formatBytes')) {
 		return round($bytes / pow(1024, $pow), $precision) . ' ' . $units[$pow];
 	}
 }
+
+function byteToGigabyte(int $bytes): float|int
+{
+	return $bytes * 1024 * 1024 * 1024;
+}
+
+function findNodePath(): string {
+	$nodePath = trim(shell_exec('which node'));
+	return $nodePath ?: 'node';
+}

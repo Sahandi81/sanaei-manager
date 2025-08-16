@@ -37,7 +37,7 @@
 									<td>{{ $server->ip }}</td>
 									<td>{{ $server->location ?? '-' }}</td>
 									<td>{{ ucfirst($server->panel_type) }}</td>
-									<td><a href="{{$server->api_url}}"><small class="text-muted">{{ $server->api_url }}</small></a></td>
+									<td><a target="_blank" href="{{$server->api_url}}"><small class="text-muted">{{ $server->api_url }}</small></a></td>
 									<td>
 										@php($status = (Modules\Server\Models\Server::getStatues()[$server->status] ?? ['text' => 'Unknown', 'status' => 'secondary']))
 

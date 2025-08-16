@@ -7,10 +7,14 @@ use App\Models\User;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Modules\Logging\Traits\Loggable;
 use Modules\Server\Models\Server;
+use Modules\Server\Services\SyncUserService;
+use Modules\Shop\Models\Order;
+use Modules\Shop\Models\OrderConfig;
 use Modules\Shop\Models\Product;
 use Modules\Shop\Http\Requests\ProductRequest;
 
@@ -70,7 +74,18 @@ class ProductController extends Controller
 		$product->update($fields);
 
 		if ($request->has('servers')) {
+			$originalServerIds = $product->servers()->pluck('servers.id')->toArray();
+
 			$product->servers()->sync($request->input('servers'));
+
+			$removedServerIds = array_diff($originalServerIds, $request->input('servers'));
+			if (!empty($removedServerIds)) {
+				OrderConfig::query()->whereHas('order', function($query) use ($product) {
+					$query->where('product_id', $product->id);
+				})
+					->whereIn('server_id', $removedServerIds)
+					->delete();
+			}
 		}
 
 		$this->logInfo('updateProduct', 'Product updated', [
@@ -78,6 +93,29 @@ class ProductController extends Controller
 		]);
 
 		return redirect()->route('shop.products.index')->with('success_msg',  tr_helper('contents', 'SuccessfullyUpdated'));
+	}
+
+	public function syncConfigs(Product $product): JsonResponse
+	{
+		try{
+			$res = (new SyncUserService())->syncUsersByProduct($product);
+			if (!$res)
+				throw new \Exception('syncUsersByProduct return false, check system logs');
+			return response()->json([
+			'success' => true,
+			'msg' => tr_helper('contents', 'SuccessfullySynced'),
+				]);
+		} catch (\Throwable $e) {
+
+			$this->logError('syncConfigs', 'Failed to sync product configs', [
+			'error' 		=> $e->getMessage(),
+			'product_id' 	=> $product->id,
+			]);
+			return response()->json([
+			'success' => false,
+			'msg' => tr_helper('contents', 'FailedToSync'),
+			], 500);
+		}
 	}
 
 	public function destroy(Product $product): RedirectResponse

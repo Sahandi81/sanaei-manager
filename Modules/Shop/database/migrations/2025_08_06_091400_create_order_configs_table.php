@@ -14,23 +14,18 @@ return new class extends Migration
         Schema::create('order_configs', function (Blueprint $table) {
 			$table->id();
 
-			// Foreign keys
 			$table->foreignId('server_id')->constrained('servers')->cascadeOnDelete();
-			$table->foreignId('inbound_id')->constrained('inbounds')->cascadeOnDelete();
+			$table->foreignId('inbound_id')->constrained('inbounds', 'panel_inbound_id')->cascadeOnDelete();
 			$table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
 			$table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
 
-			// Configuration data
-			$table->json('config');
+			$table->longText('config');
 			$table->decimal('used_traffic_gb', 10, 3)->default(0.0);
-			// Timestamps
 			$table->timestamps();
 
-			// Indexes
 			$table->index(['server_id', 'inbound_id']);
 			$table->index(['order_id']);
 			$table->index(['client_id']);
-			$table->index(['expires_at']);
         });
     }
 

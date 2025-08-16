@@ -5,8 +5,10 @@ namespace Modules\Shop\Models;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Modules\Client\Models\Client;
 
 class Order extends Model
 {
@@ -16,9 +18,11 @@ class Order extends Model
 		'product_id',
 		'price',
 		'traffic_gb',
+		'used_traffic_gb',
 		'duration_days',
 		'expires_at',
 		'subs',
+		'qr_path',
 		'status'
 	];
 	const STATUS_PENDING = 0;
@@ -86,8 +90,18 @@ class Order extends Model
 		}
 	}
 
+	public function client(): BelongsTo
+	{
+		return $this->belongsTo(Client::class);
+	}
+
 	public function product(): BelongsTo
 	{
 		return $this->belongsTo(Product::class);
+	}
+
+	public function configs(): HasMany
+	{
+		return $this->hasMany(OrderConfig::class);
 	}
 }

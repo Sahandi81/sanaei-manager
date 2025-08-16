@@ -6,5 +6,7 @@
     "Shop": true,
     "Client": true,
     "Finance": true,
-    "FileManager": true
+    "FileManager": true,
+    "QrGenerator": true,
+    "TgBot": true
 }

@@ -1,0 +1,16 @@
+{
+  "name": "qr-code-styling",
+  "version": "1.0.1",
+  "description": "just qr code",
+  "main": "generate-qr.js",
+  "repository": "no",
+  "author": "sahandi81",
+  "license": "no",
+  "private": false,
+  "dependencies": {
+    "canvas": "^3.1.2",
+    "puppeteer": "^24.16.0",
+    "qr-code-styling": "^1.9.2",
+    "qr-code-styling-node": "^1.5.0"
+  }
+}

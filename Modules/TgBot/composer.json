@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/tgbot",
+    "description": "",
+    "authors": [
+        {
+            "name": "Sahandi81",
+            "email": "sahandi81.rahmatpanah@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\TgBot\\": "app/",
+            "Modules\\TgBot\\Database\\Factories\\": "database/factories/",
+            "Modules\\TgBot\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\TgBot\\Tests\\": "tests/"
+        }
+    }
+}
