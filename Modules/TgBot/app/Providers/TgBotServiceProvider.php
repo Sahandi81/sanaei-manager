@@ -4,6 +4,9 @@ namespace Modules\TgBot\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\TgBot\Services\Contracts\TelegramDriver;
+use Modules\TgBot\Services\Drivers\HttpTelegramDriver;
+use Modules\TgBot\Services\Drivers\SdkTelegramDriver;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -36,6 +39,13 @@ class TgBotServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+		$this->mergeConfigFrom(__DIR__ . '/../../config/config.php', 'tgbot');
+
+		$this->app->bind(TelegramDriver::class, function () {
+			return config('tgbot.driver') === 'sdk'
+				? new SdkTelegramDriver()
+				: new HttpTelegramDriver();
+		});
     }
 
     /**

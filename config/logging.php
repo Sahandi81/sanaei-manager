@@ -52,7 +52,14 @@ return [
 
     'channels' => [
 
-        'stack' => [
+		'telegram' => [
+			'driver' => 'daily',
+			'path' => storage_path('logs/telegram.log'),
+			'level' => 'debug',
+			'days' => 14,
+		],
+
+		'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),
             'ignore_exceptions' => false,

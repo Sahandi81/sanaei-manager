@@ -8,6 +8,8 @@ use App\Http\Controllers\PanelController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Modules\Server\Services\SyncUserService;
+use Modules\Shop\Console\Commands\DeactivateExceededTrafficOrders;
+use Modules\Shop\Services\ClientProvisioningService;
 use Modules\Shop\Services\OrderActivationService;
 
 Route::get('/', function (){
@@ -52,6 +54,7 @@ Route::group(['prefix' => '/panel', 'as' => 'panel.', 'middleware' => 'auth:sanc
 Route::get('test', function (){
 //	$order = \Modules\Shop\Models\Order::query()->findOrFail(1);
 //	(new OrderActivationService())->activateOrder($order);
-
+//	return (new DeactivateExceededTrafficOrders())->handle();
 	(new \Modules\Server\Services\TrafficSyncService())->syncTraffic();
+//	(new ClientProvisioningService())->provisionUser(\Modules\Shop\Models\Order::find(265));
 });

@@ -8,6 +8,5 @@ interface PanelInterface
 	public function login(): ?bool;
 	public function getInbounds(): bool|array;
 	public function createUser(array $payload, int $clientID, array $inboundIds = []): bool;
-	public function disableInbound(int $id): bool;
-	public function rechargeInbound(int $id, int $expiryDays): bool;
+	public function deleteClientByUuid(int $inboundId, string $uuid): bool;
 }

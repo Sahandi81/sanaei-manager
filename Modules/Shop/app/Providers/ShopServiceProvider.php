@@ -4,6 +4,7 @@ namespace Modules\Shop\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Shop\Console\Commands\DeactivateExceededTrafficOrders;
 use Modules\Shop\Models\Order;
 use Modules\Shop\Observers\OrderObserver;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -30,6 +31,9 @@ class ShopServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 		Order::observe(OrderObserver::class);
+		$this->commands([
+			DeactivateExceededTrafficOrders::class,
+		]);
     }
 
     /**
@@ -39,6 +43,7 @@ class ShopServiceProvider extends ServiceProvider
     {
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+
     }
 
     /**

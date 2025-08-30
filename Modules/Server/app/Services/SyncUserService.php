@@ -144,11 +144,6 @@ class SyncUserService
 				$streamSettings = json_decode($inbound['streamSettings'] ?? '{}', true);
 
 				foreach ($settings['clients'] ?? [] as $client) {
-					$this->logDebug('yieldInboundData', 'Yielding inbound data', [
-						'server_id' => $server->id,
-						'inbound_id' => $inbound['id'],
-						'client_id' => $client['id']
-					]);
 
 					yield "{$server->id}-{$inbound['id']}" => [
 						'server_id' => $server->id,

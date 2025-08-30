@@ -19,7 +19,7 @@ return new class extends Migration
 			$table->decimal('price', 20, 2);
 			$table->integer('traffic_gb');
 			$table->integer('duration_days');
-			$table->timestamp('expires_at')->useCurrent();
+			$table->timestamp('expires_at')->nullable();
 			$table->string('subs')->unique();
 			$table->integer('status')->default(0); // 0:pending, 1:active, 2:expired, 3:canceled
 			$table->timestamps();

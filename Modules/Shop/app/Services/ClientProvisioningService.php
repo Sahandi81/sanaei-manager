@@ -2,7 +2,6 @@
 
 namespace Modules\Shop\Services;
 
-use App\Exceptions\ServerProvisioningException;
 use Illuminate\Support\Facades\DB;
 use Modules\Client\Models\Client;
 use Modules\Server\Models\Server;

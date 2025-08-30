@@ -48,7 +48,6 @@ class TrafficSyncService
 					continue;
 				}
 
-				// گرفتن کانفیگ‌های مربوط به این سرور
 				$configs = OrderConfig::query()
 					->where('server_id', $server->id)
 					->get(['id', 'order_id', 'client_id', 'used_traffic_gb', 'panel_email']);
@@ -58,13 +57,11 @@ class TrafficSyncService
 
 
 				foreach ($configs as $config) {
-//					if ($server->id == 21) dd($config->panel_email);
 					if (!isset($usageMap[$config->panel_email])) continue;
 
 					$newUsage = $usageMap[$config->panel_email];
 					$oldUsage = $config->used_traffic_gb;
 					$diff = $newUsage - $oldUsage;
-//					dd($configs,$usageMap, $config->panel_email, $usageMap[$config->panel_email], $diff);
 					if ($diff <= 0) continue;
 
 					$updatesConfigs[] = [

@@ -59,7 +59,7 @@
 		},
 		{
 			"name": "Transactions",
-			"icon": "menu-icon tf-icons bx bx-group",
+			"icon": "menu-icon tf-icons bx bx-receipt",
 			"slug": "finance.transactions",
 			"prefix": "finance.transactions.",
 			"submenu": [
@@ -76,11 +76,29 @@
 			]
 		},
 		{
+			"name": "Cards",
+			"icon": "menu-icon tf-icons bx bx-credit-card",
+			"slug": "finance.cards",
+			"prefix": "finance.cards.",
+			"submenu": [
+				{
+					"url": "finance.cards.index",
+					"name": "List",
+					"slug": "finance.cards.index"
+				},
+				{
+					"url": "finance.cards.create",
+					"name": "Create",
+					"slug": "finance.cards.create"
+				}
+			]
+		},
+		{
 			"menuHeader": "SystemUSettings"
 		},
 		{
 			"name": "Users",
-			"icon": "menu-icon tf-icons bx bx-users",
+			"icon": "menu-icon tf-icons bx bx-group",
 			"slug": "panel.users",
 			"prefix": "panel.users.",
 			"submenu": [

@@ -254,6 +254,11 @@ return [
 		'client_id'			=> 'مشتری',
 		'currency'			=> 'واحد پول',
 		'servers'			=> 'سرورها',
+		'owner_name'		=> 'نام دارنده‌ کارت',
+		'bank_name'			=> 'بانک',
+		'card_number'		=> 'شماره کارت',
+		'default'			=> 'استفاده به عنوان پیشفرض',
+		'is_default'		=> 'استفاده به عنوان پیشفرض',
     ],
 
 	'input_placeholder' => [

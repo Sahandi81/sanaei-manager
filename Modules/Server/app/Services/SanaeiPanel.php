@@ -157,54 +157,46 @@ class SanaeiPanel implements PanelInterface
 		}
 	}
 
-	public function disableInbound(int $id): bool
+	public function deleteClientByUuid(int $inboundId, string $uuid): bool
 	{
+
 		try {
 			if (!$this->login()) {
 				return false;
 			}
 
-			$response = $this->client->post('xui/inbound/update', [
+			$resp = $this->client->post("panel/api/inbounds/{$inboundId}/delClient/{$uuid}", [
 				'cookies' => $this->cookieJar,
-				'json' => [
-					'id' => $id,
-					'enable' => false,
-				]
+				'headers' => ['Accept' => 'application/json'],
 			]);
 
-			return $response->getStatusCode() === 200;
-		} catch (Exception $e) {
-			$this->logError('disableInbound', 'Disabling inbound failed', [
-				'error' => $e->getMessage(),
-				'inbound_id' => $id,
-				'server_id' => $this->server->id,
+			$body = json_decode($resp->getBody()->getContents(), true);
+			$ok   = ($resp->getStatusCode() === 200) && ($body['success'] ?? false);
+
+			if ($ok) {
+				$this->logInfo('delClient', 'Client deleted', [
+					'endpoint'   => "panel/api/inbounds/{$inboundId}/delClient/{$uuid}",
+					'inbound_id' => $inboundId,
+					'uuid'       => $uuid,
+					'server_id'  => $this->server->id,
+				]);
+				return true;
+			}
+
+			$this->logError('delClient', 'Delete client returned non-success', [
+				'endpoint'   => "panel/api/inbounds/{$inboundId}/delClient/{$uuid}",
+				'inbound_id' => $inboundId,
+				'uuid'       => $uuid,
+				'server_id'  => $this->server->id,
+				'api_res'    => $body,
 			]);
 			return false;
-		}
-	}
-
-	public function rechargeInbound(int $id, int $expiryDays): bool
-	{
-		try {
-			if (!$this->login()) {
-				return false;
-			}
-
-			$response = $this->client->post('xui/inbound/updateClientSettings', [
-				'cookies' => $this->cookieJar,
-				'json' => [
-					'id' => $id,
-					'expiryTime' => now()->addDays($expiryDays)->timestamp * 1000,
-				]
-			]);
-
-			return $response->getStatusCode() === 200;
-		} catch (Exception $e) {
-			$this->logError('rechargeInbound', 'Recharge failed', [
-				'error' => $e->getMessage(),
-				'inbound_id' => $id,
-				'days' => $expiryDays,
-				'server_id' => $this->server->id,
+		} catch (\Throwable $e) {
+			$this->logError('delClient', 'Delete client exception', [
+				'inbound_id' => $inboundId,
+				'uuid'       => $uuid,
+				'server_id'  => $this->server->id,
+				'error'      => $e->getMessage(),
 			]);
 			return false;
 		}
@@ -455,5 +447,3 @@ class SanaeiPanel implements PanelInterface
 		}
 	}
 }
-// vless://faaedffe-772f-11f0-8bd9-cffa7a74d7d8@91.107.255.68:27818?type=grpc&serviceName=&authority=&security=reality&pbk=DOb9pl3Bkta-U-_XyUnXJF4SvpTqWVVRziGd-CV8mmA&fp=randomized&sni=speedtest.net&sid=f42b94&spx=%2F#%F0%9F%87%A9%F0%9F%87%AA%20gRPC%20-Satify%20Germany%202-%D8%A7%DB%8C%D9%85%D8%A7%D9%86%20%D8%BA%D9%81%D9%88%D8%B1%DB%8C-6715
-// vless://43ce45be-75cb-11f0-8b7f-cef6672273db@91.107.255.68:27818?type=grpc&serviceName=&authority=&security=reality&fp=randomized&sni=speedtest.net&sid=f42b94&spx=%252F#%F0%9F%87%A9%F0%9F%87%AA%20gRPC%20-Satify%20Germany%202%D8%A7%DB%8C%D9%85%D8%A7%D9%86%20%D8%BA%D9%81%D9%88%D8%B1%DB%8C-8333

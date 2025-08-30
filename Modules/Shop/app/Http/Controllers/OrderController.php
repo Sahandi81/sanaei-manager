@@ -71,9 +71,11 @@ class OrderController extends Controller
 		// Inline approve
 		(new TransactionController())->approve($transaction);
 
-		$url = config('app.url') . '/shop/orders/subs/' . $order->subs;
+		$url = route('shop.orders.subs', $order->subs);
+		$logo = base_path('/public/logo.png');
 
-		$qrCodePath = QrGeneratorService::generateQr($url, $order->client_id, $order->id, $order->subs, '/home/sahandi81/dev/projects/personal/vpn/panelManager/public/logo.png');
+
+		$qrCodePath = QrGeneratorService::generateQr($url, $order->client_id, $order->id, $order->subs, $logo);
 
 		$order->update(['qr_path' => $qrCodePath]);
 

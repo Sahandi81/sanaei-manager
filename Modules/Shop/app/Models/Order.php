@@ -23,7 +23,10 @@ class Order extends Model
 		'expires_at',
 		'subs',
 		'qr_path',
-		'status'
+		'status',
+		'uuid',
+		'disabled_reason',
+		'attempt_to_remove',
 	];
 	const STATUS_PENDING = 0;
 	const STATUS_ACTIVE = 1;

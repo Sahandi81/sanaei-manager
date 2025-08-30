@@ -31,6 +31,7 @@ class User extends Authenticatable
         'status',
         'email',
         'password',
+        'telegram_id',
         'role_key',
         'telegram_bot_token',
         'telegram_webhook',
