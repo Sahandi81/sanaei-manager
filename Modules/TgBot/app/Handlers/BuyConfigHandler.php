@@ -65,6 +65,7 @@ class BuyConfigHandler implements Handler
 		$products = Product::query()
 			->where('user_id', $owner->id)
 			->where('is_active', 1)
+			->where('is_test', 0)
 			->orderBy('price')
 			->get();
 
@@ -112,6 +113,7 @@ class BuyConfigHandler implements Handler
 			'price'      => number_format((int)$p->price),
 			'user_limit' => (string) $p->user_limit,
 		]);
+		$text = escapeMarkdownV2PreserveCode($text);
 
 		$kb = [
 			'inline_keyboard' => [
@@ -310,7 +312,7 @@ class BuyConfigHandler implements Handler
 		$this->tg->sendMessage($owner->telegram_bot_token, $chatId, $hint, null, 'MarkdownV2');
 	}
 
-	protected function createOrderAndTransaction(User $owner, Client $client, Product $product, string $txStatus): array
+	public function createOrderAndTransaction(User $owner, Client $client, Product $product, string $txStatus): array
 	{
 		$order = Order::query()->create([
 			'user_id'       => $owner->id,
@@ -322,20 +324,21 @@ class BuyConfigHandler implements Handler
 			'expires_at'    => now()->addDays($product->duration_days)->format('Y-m-d H:i:s'),
 			'status'        => 0,
 		]);
+		if ($product->price > 0){
+			$transaction = Transaction::query()->create([
+				'user_id'     => $owner->id,
+				'client_id'   => $client->id,
+				'amount'      => $product->price,
+				'currency'    => 'IRR',
+				'description' => "Payment for product: {$product->name}",
+				'status'      => $txStatus,
+				'type'        => Transaction::TYPE_PANEL,
+				'item_type'   => Order::class,
+				'item_id'     => $order->id,
+			]);
+		}
 
-		$transaction = Transaction::query()->create([
-			'user_id'     => $owner->id,
-			'client_id'   => $client->id,
-			'amount'      => $product->price,
-			'currency'    => 'IRR',
-			'description' => "Payment for product: {$product->name}",
-			'status'      => $txStatus,
-			'type'        => Transaction::TYPE_PANEL,
-			'item_type'   => Order::class,
-			'item_id'     => $order->id,
-		]);
-
-		return [$order, $transaction];
+		return [$order, $transaction ?? []];
 	}
 
 	protected function resolveClient(User $owner, array $update): ?Client
@@ -360,38 +363,9 @@ class BuyConfigHandler implements Handler
 		if (!$adminChatId) return;
 
 		// escape only outside of `code` spans
-		$safe = $this->escapeMarkdownV2PreserveCode($text);
+		$safe = escapeMarkdownV2PreserveCode($text);
 
 		$this->tg->sendMessage($owner->telegram_bot_token, $adminChatId, $safe, null, 'MarkdownV2');
-	}
-
-	/**
-	 * Escape MarkdownV2 specials outside of `code` spans.
-	 * Specials: _ * [ ] ( ) ~ ` > # + - = | { } . !
-	 */
-	private function escapeMarkdownV2PreserveCode(string $text): string
-	{
-		// split by inline code segments: `...`
-		$parts = preg_split('/(`[^`]*`)/u', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
-		if ($parts === false) return $text;
-
-		$escaped = '';
-		foreach ($parts as $part) {
-			if ($part === '') continue;
-
-			if ($part[0] === '`') {
-				// keep code segment as-is
-				$escaped .= $part;
-			} else {
-				// escape specials in normal text
-				$escaped .= preg_replace(
-					'/([_\*\[\]\(\)~`>#+\-=|{}\.!])/u',
-					'\\\\$1',
-					$part
-				);
-			}
-		}
-		return $escaped;
 	}
 
 	protected function formatCardNumber(string $digits): string

@@ -46,7 +46,7 @@ class ServerController extends Controller
 		$testConnection = $this->handleConnection($server);
 		$this->syncInbounds($server);
 		if (!$testConnection['live'] && !$testConnection['login']) {
-			return redirect()->back()->with('error_msg', tr_helper('contents', 'ChangesSavedButCheckConnection'));
+			return redirect()->route('servers.edit', $server->id)->with('error_msg', tr_helper('contents', 'ChangesSavedButCheckConnection'));
 		}
 
 		return redirect()->route('servers.index')

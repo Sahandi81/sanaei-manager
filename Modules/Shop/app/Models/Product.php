@@ -44,6 +44,12 @@ class Product extends Model
 		}
 	}
 
+	public static function getAllActiveProducts($userID = null): Collection
+	{
+		return self::query()->where('is_active', 1)
+			->get();
+	}
+
 	public static function paginate($perPage = 25): LengthAwarePaginator
 	{
 		$userAdminStatus = Auth::user()->role->is_admin;

@@ -10,7 +10,7 @@ use Modules\Shop\Models\Order;
 use Modules\Shop\Models\OrderConfig;
 use Modules\Logging\Traits\Loggable;
 
-class ClientProvisioningService
+	class ClientProvisioningService
 {
 	use Loggable;
 
@@ -32,17 +32,8 @@ class ClientProvisioningService
 				->get();
 
 			if ($activeServers->isEmpty()) {
-				$this->logError('no_active_servers', 'No active servers available', [
-					'order_id' => $order->id,
-					'product_id' => $product->id,
-				]);
 				return;
 			}
-
-			$this->logDebug('servers_found', 'Active servers retrieved', [
-				'server_count' => $activeServers->count(),
-				'server_ids' => $activeServers->pluck('id')->toArray(),
-			]);
 
 			foreach ($activeServers as $server) {
 				$this->provisionOnServer($server, $client, $order);
@@ -70,7 +61,16 @@ class ClientProvisioningService
 					'server_id' => $server->id,
 					'inbound_id' => $inbound->id,
 				]);
-
+				$userPayload = [
+					'id' => $userDetails['id'],
+					'email' => $userDetails['email'],
+					'flow' => $userDetails['flow'],
+					'totalGB' => $userDetails['totalGB'],
+					'expiryTime' => $userDetails['expiryTime'],
+					'enable' => $userDetails['enable'],
+					'tgId' => $userDetails['tgId'],
+					'subId' => $userDetails['subId'],
+				];
 				$response = $panel->createUser($client);
 
 				$orderConfig = OrderConfig::updateOrCreate(

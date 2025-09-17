@@ -81,12 +81,10 @@ class SanaeiPanel implements PanelInterface
 			if (!$this->login()) {
 				return false;
 			}
-
 			$response = $this->client->get('panel/api/inbounds/list', [
 				'cookies' => $this->cookieJar,
 			]);
 			$data = json_decode($response->getBody()->getContents(), true);
-
 			if (isset($data['success']) && $data['success']) {
 				return $data['obj'] ?? [];
 			}
@@ -142,6 +140,7 @@ class SanaeiPanel implements PanelInterface
 					'server_id' 	=> $this->server->id,
 					'client_id' 	=> $clientID,
 					'inbound_id' 	=> $inboundId,
+					'api_response' 	=> $data
 				]);
 			}
 			return true;
@@ -204,246 +203,270 @@ class SanaeiPanel implements PanelInterface
 
 	public function generateConfig(array $inbound, array $client, array $streamSettings): string
 	{
+		// Normalize: decode JSON strings if needed
+		$inboundSettings = $inbound['settings'] ?? [];
+		if (is_string($inboundSettings)) {
+			$inboundSettings = json_decode($inboundSettings, true) ?: [];
+		}
+
+		if (is_string($streamSettings)) {
+			$streamSettings = json_decode($streamSettings, true) ?: [];
+		}
+
 		$protocol = strtolower($inbound['protocol'] ?? 'vless');
-		$port = $inbound['port'] ?? '';
-		$remark = ($inbound['remark'] ?? '') . $client['email'];
-		$network = strtolower($streamSettings['network'] ?? 'tcp');
+		$port     = (int)($inbound['port'] ?? 0);
+		$remark   = trim(($inbound['remark'] ?? '') . ' ' . ($client['email'] ?? ''));
+		$network  = strtolower($streamSettings['network'] ?? 'tcp');
 		$security = strtolower($streamSettings['security'] ?? 'none');
 
+		// ✅ host resolution (fix): prefer externalProxy.dest, else TLS/REALITY serverName, else server IP
+		$dest = $this->resolveDestination($streamSettings, $security);
+
 		if ($protocol === 'vmess') {
-			// Generate standard VMess base64 config
-			$vmessData = [
-				'v' => '2',
-				'ps' => $remark,
-				'add' => $this->server->ip,
-				'port' => $port,
-				'id' => $client['id'],
+			// Build VMess JSON then base64
+			$vmess = [
+				'v'   => '2',
+				'ps'  => $remark,
+				'add' => $dest,
+				'port'=> $port,
+				'id'  => $client['id'] ?? '',
 				'aid' => $client['alterId'] ?? 0,
 				'scy' => $client['security'] ?? 'auto',
 				'net' => $network,
-				'type' => 'none', // Default, will be overridden based on network
-				'host' => '',
-				'path' => '',
+				'type'=> 'none',
+				'host'=> '',
+				'path'=> '',
 				'tls' => $security,
 				'sni' => '',
-				'alpn' => '',
-				'fp' => '',
+				'alpn'=> '',
+				'fp'  => '',
 			];
 
-			// Handle network-specific settings
 			switch ($network) {
 				case 'tcp':
-					$tcpSettings = $streamSettings['tcpSettings'] ?? [];
-					$header = $tcpSettings['header'] ?? [];
-					$vmessData['type'] = $header['type'] ?? 'none';
-					if (($header['type'] ?? '') === 'http') {
-						$httpSettings = $header['request'] ?? [];
-						$vmessData['host'] = implode(',', $httpSettings['headers']['Host'] ?? []);
-						$vmessData['path'] = implode(',', $httpSettings['path'] ?? ['/']);
+					$tcp = $streamSettings['tcpSettings'] ?? [];
+					$hdr = $tcp['header'] ?? [];
+					$vmess['type'] = $hdr['type'] ?? 'none';
+					if (($hdr['type'] ?? '') === 'http') {
+						$req = $hdr['request'] ?? [];
+						$vmess['host'] = implode(',', $req['headers']['Host'] ?? []);
+						$vmess['path'] = implode(',', $req['path'] ?? ['/']);
 					}
 					break;
 
 				case 'kcp':
 				case 'mkcp':
-					$kcpSettings = $streamSettings['kcpSettings'] ?? [];
-					$vmessData['type'] = $kcpSettings['header']['type'] ?? 'none';
+					$kcp = $streamSettings['kcpSettings'] ?? [];
+					$vmess['type'] = $kcp['header']['type'] ?? 'none';
 					break;
 
 				case 'ws':
 				case 'websocket':
-					$wsSettings = $streamSettings['wsSettings'] ?? [];
-					$vmessData['path'] = $wsSettings['path'] ?? '/';
-					$vmessData['host'] = $wsSettings['headers']['Host'] ?? '';
+					$ws = $streamSettings['wsSettings'] ?? [];
+					$vmess['path'] = $ws['path'] ?? '/';
+					$vmess['host'] = $ws['headers']['Host'] ?? '';
 					break;
 
 				case 'http':
 				case 'h2':
 				case 'httpupgrade':
-					$httpSettings = $streamSettings['httpSettings'] ?? [];
-					$vmessData['path'] = $httpSettings['path'] ?? '/';
-					$vmessData['host'] = implode(',', $httpSettings['host'] ?? []);
+					$h2 = $streamSettings['httpSettings'] ?? [];
+					$vmess['path'] = $h2['path'] ?? '/';
+					$vmess['host'] = implode(',', $h2['host'] ?? []);
 					break;
 
 				case 'grpc':
-					$grpcSettings = $streamSettings['grpcSettings'] ?? [];
-					$vmessData['path'] = $grpcSettings['serviceName'] ?? '';
-					$vmessData['type'] = $grpcSettings['multiMode'] ? 'multi' : 'gun';
+					$grpc = $streamSettings['grpcSettings'] ?? [];
+					$vmess['path'] = $grpc['serviceName'] ?? '';
+					$vmess['type'] = !empty($grpc['multiMode']) ? 'multi' : 'gun';
 					break;
 
 				case 'quic':
-					$quicSettings = $streamSettings['quicSettings'] ?? [];
-					$vmessData['type'] = $quicSettings['header']['type'] ?? 'none';
-					$vmessData['host'] = $quicSettings['security'] ?? 'none';
-					$vmessData['path'] = $quicSettings['key'] ?? '';
+					$quic = $streamSettings['quicSettings'] ?? [];
+					$vmess['type'] = $quic['header']['type'] ?? 'none';
+					$vmess['host'] = $quic['security'] ?? 'none';
+					$vmess['path'] = $quic['key'] ?? '';
 					break;
 			}
 
-			// Handle TLS/セキュリティ
-			if (in_array($security, ['tls', 'xtls', 'reality'])) {
-				$tlsSettings = $streamSettings['tlsSettings'] ?? [];
-				$vmessData['sni'] = $tlsSettings['serverName'] ?? '';
-				$vmessData['alpn'] = implode(',', $tlsSettings['alpn'] ?? []);
+			if (in_array($security, ['tls','xtls','reality'], true)) {
+				$tls = $streamSettings['tlsSettings'] ?? [];
+				$vmess['sni']  = $tls['serverName'] ?? '';
+				$vmess['alpn'] = implode(',', $tls['alpn'] ?? []);
 				if ($security === 'reality') {
-					$vmessData['fp'] = $tlsSettings['fingerprint'] ?? '';
-					// pbk and sid not typically in VMess, but if needed, adjust
+					$vmess['fp'] = $tls['fingerprint'] ?? '';
 				}
 			}
 
-			// Filter out empty values
-			$vmessData = array_filter($vmessData, function($value) {
-				return $value !== '' && $value !== null;
-			});
-
-			$json = json_encode($vmessData);
-			$base64 = base64_encode($json);
-			return "vmess://{$base64}";
+			// Filter only truly empty values (keep 0/false)
+			$vmess = array_filter($vmess, static fn($v) => $v !== '' && $v !== null);
+			return 'vmess://' . base64_encode(json_encode($vmess));
 		}
-		elseif ($protocol === 'shadowsocks') {
-			// Generate standard Shadowsocks config with base64
-			$method = $inbound['method'] ?? 'aes-256-gcm';
-			$password = $client['password'] ?? $client['id'];
+
+		if ($protocol === 'shadowsocks') {
+			$method   = $inbound['method'] ?? 'aes-256-gcm';
+			$password = $client['password'] ?? ($client['id'] ?? '');
 			$userinfo = base64_encode("{$method}:{$password}");
-			$configUrl = "ss://{$userinfo}@{$this->server->ip}:{$port}#" . rawurlencode($remark);
 
-			// Shadowsocks typically doesn't support complex stream settings like TLS, but if needed, append query
-			$queryParams = [];
+			$url = "ss://{$userinfo}@{$dest}:{$port}#" . rawurlencode($remark);
+
+			// (SS usually via plugins; keep minimal)
+			$q = [];
 			if ($security !== 'none') {
-				$queryParams['security'] = $security;
-				// Add more if applicable, but SS usually uses plugin for TLS
+				$q['security'] = $security;
 			}
-			if (!empty($queryParams)) {
-				$queryString = http_build_query($queryParams);
-				$configUrl .= '?' . $queryString;
+			if (!empty($q)) {
+				$url .= '?' . http_build_query($q);
 			}
+			return $url;
+		}
 
-			return $configUrl;
+		// VLESS / Trojan
+		$userPart = $protocol === 'trojan'
+			? ($client['password'] ?? ($client['id'] ?? ''))
+			: ($client['id'] ?? '');
 
-		} else {
-			// For VLESS and Trojan
-			$baseUrl = sprintf(
-				"%s://%s@%s:%d",
-				$protocol,
-				$protocol === 'trojan' ? ($client['password'] ?? $client['id']) : $client['id'],
-				$this->server->ip,
-				$port
-			);
+		$baseUrl = sprintf('%s://%s@%s:%d', $protocol, $userPart, $dest, $port);
 
-			$queryParams = [
-				'type' => $network,
-				'security' => $security
-			];
+		$q = [
+			'type'     => $network,
+			'security' => $security,
+		];
 
-			switch ($protocol) {
-				case 'vless':
-					$queryParams['encryption'] = $inbound['decryption'] ?? 'none';
-					$queryParams['flow'] = $client['flow'] ?? '';
-					break;
+		if ($protocol === 'vless') {
+			// NOTE: decryption/encryption is inside inbound.settings
+			$q['encryption'] = $inboundSettings['decryption'] ?? 'none';
+			$q['flow']       = $client['flow'] ?? '';
+		} elseif ($protocol === 'trojan') {
+			$q['flow']       = $client['flow'] ?? '';
+		}
 
-				case 'trojan':
-					$queryParams['flow'] = $client['flow'] ?? '';
-					break;
-			}
+		switch ($network) {
+			case 'tcp':
+				$tcp = $streamSettings['tcpSettings'] ?? [];
+				$hdr = $tcp['header'] ?? [];
+				$q['headerType'] = $hdr['type'] ?? 'none';
+				if (($hdr['type'] ?? '') === 'http') {
+					$req = $hdr['request'] ?? [];
+					$q['host'] = implode(',', $req['headers']['Host'] ?? []);
+					$paths = $req['path'] ?? ['/'];
+					$q['path'] = implode(',', array_map(
+						static fn($p) => urlencode(urldecode($p)),
+						(array)$paths
+					));
+				}
+				break;
 
-			switch ($network) {
-				case 'tcp':
-					$tcpSettings = $streamSettings['tcpSettings'] ?? [];
-					$header = $tcpSettings['header'] ?? [];
-					$queryParams['headerType'] = $header['type'] ?? 'none';
+			case 'kcp':
+			case 'mkcp':
+				$kcp = $streamSettings['kcpSettings'] ?? [];
+				$q['headerType'] = $kcp['header']['type'] ?? 'none';
+				$q['seed']       = $kcp['seed'] ?? '';
+				$q['congestion'] = $kcp['congestion'] ?? false;
+				break;
 
-					if (($header['type'] ?? '') === 'http') {
-						$httpSettings = $header['request'] ?? [];
-						$queryParams['host'] = implode(',', $httpSettings['headers']['Host'] ?? []);
-						$path = $httpSettings['path'] ?? ['/'];
-						$queryParams['path'] = implode(',', array_map(function($p) { return urlencode(urldecode($p)); }, (array)$path));
-					}
-					break;
-
-				case 'kcp':
-				case 'mkcp':
-					$kcpSettings = $streamSettings['kcpSettings'] ?? [];
-					$queryParams['headerType'] = $kcpSettings['header']['type'] ?? 'none';
-					$queryParams['seed'] = $kcpSettings['seed'] ?? '';
-					$queryParams['congestion'] = $kcpSettings['congestion'] ?? false;
-					break;
-
-				case 'ws':
-				case 'websocket':
-					$wsSettings = $streamSettings['wsSettings'] ?? [];
-					$queryParams['path'] = $wsSettings['path'] ?? '/';
-					$queryParams['host'] = $wsSettings['headers']['Host'] ?? '';
-
-					if (isset($wsSettings['headers'])) {
-						foreach ($wsSettings['headers'] as $key => $value) {
-							if (strtolower($key) !== 'host') {
-								$queryParams["ws-{$key}"] = $value;
-							}
+			case 'ws':
+			case 'websocket':
+				$ws = $streamSettings['wsSettings'] ?? [];
+				$q['path'] = $ws['path'] ?? '/';
+				$q['host'] = $ws['headers']['Host'] ?? '';
+				if (!empty($ws['headers'])) {
+					foreach ($ws['headers'] as $k => $v) {
+						if (strtolower($k) !== 'host') {
+							$q["ws-{$k}"] = $v;
 						}
 					}
-					break;
-
-				case 'http':
-				case 'h2':
-				case 'httpupgrade':
-					$httpSettings = $streamSettings['httpSettings'] ?? [];
-					$path = $httpSettings['path'] ?? '/';
-					$queryParams['path'] = urlencode(urldecode($path));
-					$queryParams['host'] = implode(',', $httpSettings['host'] ?? []);
-					break;
-
-				case 'grpc':
-					$grpcSettings = $streamSettings['grpcSettings'] ?? [];
-					$queryParams['serviceName'] = $grpcSettings['serviceName'] ?? '';
-					$queryParams['mode'] = $grpcSettings['multiMode'] ? 'multi' : 'gun';
-					$queryParams['authority'] = $grpcSettings['authority'] ?? '';
-					break;
-
-				case 'quic':
-					$quicSettings = $streamSettings['quicSettings'] ?? [];
-					$queryParams['quicSecurity'] = $quicSettings['security'] ?? 'none';
-					$queryParams['key'] = $quicSettings['key'] ?? '';
-					$queryParams['headerType'] = $quicSettings['header']['type'] ?? 'none';
-					break;
-
-				case 'xhttp':
-					$xhttpSettings = $streamSettings['xhttpSettings'] ?? [];
-					$path = $xhttpSettings['path'] ?? '/';
-					$queryParams['path'] = urlencode(urldecode($path));
-					$queryParams['host'] = $xhttpSettings['host'] ?? '';
-					break;
-			}
-
-			if (in_array($security, ['tls', 'xtls', 'reality'])) {
-				if ($security === 'reality') {
-					$realitySettings = $streamSettings['realitySettings']['settings'] ?? [];
-					$queryParams['pbk'] = $realitySettings['publicKey'] ?? '';
-					$queryParams['fp'] = $realitySettings['fingerprint'] ?? '';
-					$queryParams['spx'] = $realitySettings['spiderX'] ?? '';
-					$queryParams['sid'] = $streamSettings['realitySettings']['shortIds'][0] ?? '';
-					$queryParams['sni'] = $streamSettings['realitySettings']['serverNames'][0] ?? '';
-				} else {
-					$tlsSettings = $streamSettings['tlsSettings'] ?? [];
-					$queryParams['sni'] = $tlsSettings['serverName'] ?? '';
-					$queryParams['alpn'] = implode(',', $tlsSettings['alpn'] ?? []);
-					$queryParams['allowInsecure'] = $tlsSettings['allowInsecure'] ?? false;
 				}
+				break;
 
-				if ($security === 'xtls' || $security === 'reality') {
-					$queryParams['flow'] = $client['flow'] ?? '';
-				}
-			}
+			case 'http':
+			case 'h2':
+			case 'httpupgrade':
+				$h2 = $streamSettings['httpSettings'] ?? [];
+				$q['path'] = urlencode(urldecode($h2['path'] ?? '/'));
+				$q['host'] = implode(',', $h2['host'] ?? []);
+				break;
 
-			// Remove encryption if 'none' for VLESS to match panel
-			if ($protocol === 'vless' && ($queryParams['encryption'] ?? '') === 'none') {
-				unset($queryParams['encryption']);
-			}
+			case 'grpc':
+				$grpc = $streamSettings['grpcSettings'] ?? [];
+				$q['serviceName'] = $grpc['serviceName'] ?? '';
+				$q['mode']        = !empty($grpc['multiMode']) ? 'multi' : 'gun';
+				$q['authority']   = $grpc['authority'] ?? '';
+				break;
 
-			$queryString = http_build_query(array_filter($queryParams, function($value) {
-				return $value !== null && $value !== false && $value !== '';
-			}));
+			case 'quic':
+				$quic = $streamSettings['quicSettings'] ?? [];
+				$q['quicSecurity'] = $quic['security'] ?? 'none';
+				$q['key']          = $quic['key'] ?? '';
+				$q['headerType']   = $quic['header']['type'] ?? 'none';
+				break;
 
-			$configUrl = $baseUrl . ($queryString ? '?' . $queryString : '') . '#' . rawurlencode($remark);
-
-			return $configUrl;
+			case 'xhttp':
+				$x = $streamSettings['xhttpSettings'] ?? [];
+				$q['path'] = urlencode(urldecode($x['path'] ?? '/'));
+				$q['host'] = $x['host'] ?? '';
+				break;
 		}
+
+		if (in_array($security, ['tls','xtls','reality'], true)) {
+			if ($security === 'reality') {
+				$reality = $streamSettings['realitySettings'] ?? [];
+				$settings = $reality['settings'] ?? [];
+				$q['pbk'] = $settings['publicKey'] ?? '';
+				$q['fp']  = $settings['fingerprint'] ?? '';
+				$q['spx'] = $settings['spiderX'] ?? '';
+				$q['sid'] = ($reality['shortIds'][0] ?? '');
+				$q['sni'] = ($reality['serverNames'][0] ?? '');
+			} else {
+				$tls = $streamSettings['tlsSettings'] ?? [];
+				$q['sni']           = $tls['serverName'] ?? '';
+				$q['alpn']          = implode(',', $tls['alpn'] ?? []);
+				$q['allowInsecure'] = $tls['settings']['allowInsecure'] ?? ($tls['allowInsecure'] ?? false);
+			}
+
+			if (in_array($security, ['xtls','reality'], true)) {
+				$q['flow'] = $client['flow'] ?? '';
+			}
+		}
+
+		// For VLESS: remove explicit "encryption=none" to match common practice
+		if ($protocol === 'vless' && ($q['encryption'] ?? '') === 'none') {
+			unset($q['encryption']);
+		}
+
+		$query = http_build_query(array_filter($q, static fn($v) => $v !== '' && $v !== null && $v !== false));
+		return $baseUrl . ($query ? "?{$query}" : '') . '#' . rawurlencode($remark);
+	}
+
+	/**
+	 * Prefer externalProxy.dest → TLS/REALITY serverName → server IP
+	 */
+	protected function resolveDestination(array $streamSettings, string $security): string
+	{
+		$externalProxy = $streamSettings['externalProxy'] ?? [];
+		if (is_array($externalProxy) && !empty($externalProxy)) {
+			$last = end($externalProxy);
+			$dest = $last['dest'] ?? '';
+			if (!empty($dest)) {
+				return $dest;
+			}
+		}
+
+		if (in_array($security, ['tls','xtls','reality'], true)) {
+			if ($security === 'reality') {
+				$reality = $streamSettings['realitySettings'] ?? [];
+				$serverNames = $reality['serverNames'] ?? [];
+				if (!empty($serverNames[0])) {
+					return $this->server->ip;
+				}
+			}
+
+			$tls = $streamSettings['tlsSettings'] ?? [];
+			if (!empty($tls['serverName'])) {
+				return $tls['serverName'];
+			}
+		}
+
+		return $this->server->ip;
 	}
 }

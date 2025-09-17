@@ -14,6 +14,7 @@ class WebhookController extends Controller
 
 	public function handle(string $webhook, Request $request, UpdateRouter $router)
 	{
+
 		$owner = User::where('telegram_webhook', $webhook)->first();
 		if (!$owner) {
 			$this->logError('webhookHandle', 'Invalid webhook key', ['webhook' => $webhook]);

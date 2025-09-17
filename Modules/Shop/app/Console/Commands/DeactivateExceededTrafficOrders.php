@@ -15,8 +15,8 @@ class DeactivateExceededTrafficOrders extends Command
 	/**
 	 * The name and signature of the console command.
 	 *
-	 * --dry-run : فقط گزارش بده، تغییری اعمال نکن
-	 * --chunk=500 : اندازه‌ی هر دسته در پردازش chunk
+	 * --dry-run : just report. done do anything
+	 * --chunk=500 : chunk!
 	 */
 	protected $signature = 'orders:deactivate-exceeded-traffic {--dry-run} {--chunk=500}';
 
@@ -41,9 +41,10 @@ class DeactivateExceededTrafficOrders extends Command
 			->where('attempt_to_remove', '<', 3)
 			->whereNotNull('used_traffic_gb')
 			->whereNotNull('traffic_gb')
-			->whereColumn('used_traffic_gb', '>', 'traffic_gb');
-
-//		var_export($baseQuery->get());die();
+	 		->where(function ($q) {
+			$q->whereColumn('used_traffic_gb', '>', 'traffic_gb')
+				->orWhere('expires_at', '<', now());
+			});
 
 		$baseQuery->select(['id', 'uuid'])
 			->orderBy('id')

@@ -113,6 +113,22 @@
 					"slug": "panel.users.create"
 				}
 			]
+		},
+		{
+			"menuHeader": "Tgbot"
+		},
+		{
+			"name": "Broadcast",
+			"icon": "menu-icon tf-icons bx bx-message",
+			"slug": "tgbot",
+			"prefix": "tgbot.",
+			"submenu": [
+				{
+					"url": "tgbot.broadcasts.create",
+					"name": "Create",
+					"slug": "panel.users.create"
+				}
+			]
 		}
 	]
 }

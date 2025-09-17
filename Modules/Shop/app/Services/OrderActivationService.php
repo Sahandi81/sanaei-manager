@@ -28,7 +28,6 @@ class OrderActivationService
 			'tgId' 			=> $order->client->telegram_id ?? '',
 			'subId' 		=> $order->subs
 		];
-
 		foreach ($servers as $server) {
 			SyncUserService::createConfigsOnServer($server, $userDetails);
 		}

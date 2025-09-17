@@ -135,6 +135,10 @@ return [
 		'full_access'		=> 'دسترسی کامل',
 		'is_admin'			=> 'ادمین',
 		'used_count'		=> 'دفعات استفاده برای هر کاربر',
+		'used_traffic_gb'	=> 'ترافیک‌مصرف‌شده',
+		'parse_mode'		=> 'Parse mode',
+		'only'				=> 'فقط کاربرانی که ... هستند',
+		'markup'			=> 'markup',
 		'broker'			=> 'بروکر',
 		'desc'				=> 'توضیحات',
 		'description'		=> 'توضیحات',
@@ -259,6 +263,7 @@ return [
 		'card_number'		=> 'شماره کارت',
 		'default'			=> 'استفاده به عنوان پیشفرض',
 		'is_default'		=> 'استفاده به عنوان پیشفرض',
+		'delivery_mode'		=> 'نحوه ارسال',
     ],
 
 	'input_placeholder' => [

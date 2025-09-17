@@ -8,6 +8,8 @@ final class BotActions
 	public const BUY      	= 'BUY';
 	public const MY       	= 'MY';
 	public const WALLET   	= 'WALLET';
+
+	public const TRIAL   	= 'TRIAL';
 	public const PAYWALLET	= 'PAYWALLET';
 	public const PAYCARD 	= 'PAYCARD';
 	public const PROFILE  	= 'PROFILE';

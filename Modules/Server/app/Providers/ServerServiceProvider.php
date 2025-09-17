@@ -5,6 +5,7 @@ namespace Modules\Server\Providers;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Modules\Server\Console\Commands\SyncTrafficCommand;
+use Modules\Server\Console\Commands\SyncUsersByProductCommand;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -30,6 +31,7 @@ class ServerServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 		$this->commands([
 			SyncTrafficCommand::class,
+			SyncUsersByProductCommand::class,
 		]);
     }
 

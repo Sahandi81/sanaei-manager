@@ -43,7 +43,7 @@ class TelegramWebhookService
 				// 'secret_token' => hash('sha256', $webhookKey),
 				// سایر گزینه‌ها:
 				// 'allowed_updates' => json_encode(['message', 'callback_query']),
-				// 'drop_pending_updates' => true,
+				 'drop_pending_updates' => true,
 			]);
 
 		if (!$response->successful() || !$response->json('ok')) {

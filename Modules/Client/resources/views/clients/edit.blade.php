@@ -113,6 +113,7 @@
 									<th>{{ tr_helper('contents', 'Product') }}</th>
 									<th>{{ tr_helper('validation', 'attributes.price') }}</th>
 									<th>{{ tr_helper('validation', 'attributes.traffic_gb') }}</th>
+									<th>{{ tr_helper('validation', 'attributes.used_traffic_gb') }}</th>
 									<th>{{ tr_helper('validation', 'attributes.duration_days') }}</th>
 									<th>{{ tr_helper('validation', 'attributes.purchase_date') }}</th>
 									<th>{{ tr_helper('validation', 'attributes.expires_at') }}</th>
@@ -126,6 +127,7 @@
 										<td><a href="{{ route('shop.products.edit', $order->product?->id, 0) }}">{{ $order->product?->name }}</a></td>
 										<td>{{ number_format($order->price) }}</td>
 										<td>{{ $order->traffic_gb }} GB</td>
+										<td>{{ $order->used_traffic_gb }} GB</td>
 										<td>{{ $order->duration_days }} {{ tr_helper('contents', 'Days') }}</td>
 										<td>{{ $order->created_at->format('Y-m-d H:i') }}</td>
 										<td>{{ $order->expires_at }}</td>

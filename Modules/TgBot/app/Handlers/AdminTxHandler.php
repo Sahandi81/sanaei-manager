@@ -75,6 +75,9 @@ class AdminTxHandler implements Handler
 							['text' => tr_helper('bot','btn_my_configs_inline'), 'callback_data' => 'MY'],
 						],
 						[
+							['text' => tr_helper('bot', 'btn_tutorials_inline'), 'url' => 'https://t.me/Satify_vpn/31']
+						],
+						[
 							['text' => tr_helper('bot','btn_back_to_menu'), 'callback_data' => BotActions::MENU],
 						],
 					],

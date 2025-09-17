@@ -34,7 +34,7 @@
 							@forelse($clients as $client)
 								<tr>
 									<td>{{ $loop->iteration }}</td>
-									<td>{{ $client->name }}</td>
+									<td><a href="{{ route('clients.edit', $client->id) }}">{{ $client->name }}</a></td>
 									<td><a href="#{{-- route('users.edit',  $client->user->id ) --}}">{{ $client->user?->name }}</a></td>
 									<td>{{ ucfirst($client->type) }}</td>
 									<td>{{ $client->telegram_id ?? '-' }}</td>

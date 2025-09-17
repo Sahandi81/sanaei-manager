@@ -10,6 +10,7 @@ use Modules\TgBot\Handlers\MenuHandler;
 use Modules\TgBot\Handlers\StartHandler;
 use Modules\TgBot\Handlers\BuyConfigHandler;
 use Modules\TgBot\Handlers\MyConfigsHandler;
+use Modules\TgBot\Handlers\TrialHandler;
 use Modules\TgBot\Handlers\WalletTopupHandler;
 use Modules\TgBot\Handlers\ProfileHandler;
 use Modules\TgBot\Handlers\ReferralHandler;
@@ -35,10 +36,12 @@ class UpdateRouter
 		protected TutorialsHandler $tutorials,
 		protected ConfigDetailsHandler $configDetails,
 		protected SupportHandler $support,
+		protected TrialHandler $trial,
 	) {}
 
 	public function dispatch(User $owner, array $update): void
 	{
+
 		if (isset($update['message'])) {
 			$msg = $update['message'];
 			$text = (string)($msg['text'] ?? '');
@@ -74,6 +77,7 @@ class UpdateRouter
 		}
 
 		if (isset($update['callback_query'])) {
+
 			$data = (string)($update['callback_query']['data'] ?? '');
 			$base = explode(':', $data, 2)[0] ?: BotActions::MENU;
 
@@ -99,6 +103,7 @@ class UpdateRouter
 			BotActions::TUT      => $this->tutorials,
 			BotActions::DETAILS  => $this->configDetails,
 			BotActions::SUPPORT  => $this->support,
+			BotActions::TRIAL  	 => $this->trial,
 			BotActions::BUY      => $this->buy,
 			BotActions::PAYWALLET=> $this->buy,
 			BotActions::PAYCARD  => $this->buy,

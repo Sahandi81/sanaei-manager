@@ -50,6 +50,8 @@ class ProductRequest extends FormRequest
 				'name' 					=> ['sometimes', 'required', 'string'],
 				'price' 				=> ['sometimes', 'required', 'numeric', 'min:0'],
 				'user_limit' 			=> ['sometimes', 'required', 'integer', 'min:1'],
+				'traffic_gb' 			=> ['required', 'numeric', 'min:0'],
+				'duration_days' 		=> ['required', 'numeric', 'min:0'],
 				'is_active' 			=> ['sometimes', 'required', 'boolean'],
 				'servers' 				=> ['required', 'array', 'min:1'],
 				'servers.*' 			=> ['exists:servers,id'],

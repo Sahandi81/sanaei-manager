@@ -85,3 +85,36 @@ function findNodePath(): string {
 	$nodePath = trim(shell_exec('which node'));
 	return $nodePath ?: 'node';
 }
+
+/**
+ * Escape MarkdownV2 specials outside of `code` spans.
+ * Specials: _ * [ ] ( ) ~ ` > # + - = | { } . !
+ */
+function escapeMarkdownV2PreserveCode(string $text): string
+{
+	$parts = preg_split('/(`[^`]*`)/u', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+	if ($parts === false) {
+		return $text;
+	}
+
+	$escaped = '';
+	foreach ($parts as $part) {
+		if ($part === '') {
+			continue;
+		}
+
+		if ($part[0] === '`') {
+			// keep code segment as-is
+			$escaped .= $part;
+		} else {
+			// escape specials in normal text
+			$escaped .= preg_replace(
+				'/([\\\\_\*\[\]\(\)~`>#+\-=|{}\.!\/])/u',
+				'\\\\$1',
+				$part
+			);
+		}
+	}
+
+	return $escaped;
+}

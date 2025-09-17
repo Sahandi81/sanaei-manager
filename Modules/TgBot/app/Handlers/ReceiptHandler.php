@@ -76,15 +76,29 @@ class ReceiptHandler implements Handler
 				'tid'    => (string)$tx->id,
 				'oid'    => (string)$tx->item_id,
 			]);
+			if ($client->desc) {
+				$profileLink = "\n" . $client->desc;
+				$captionRaw .= "\n\n" . $profileLink;
+			}
+
 			$caption = $this->escapeMarkdownV2PreserveCode($captionRaw);
+			$username = $client->username ?? $this->extractUsernameFromText($client->desc ?? '');
+			$profileBtnRow = [];
+			if (!empty($username)) {
+				$profileBtnRow[] = [
+					'text' => tr_helper('bot', 'btn_open_profile'),
+					'url'  => "https://t.me/{$username}",
+				];
+			}
 
 			$kb = [
-				'inline_keyboard' => [
+				'inline_keyboard' => array_values(array_filter([
+					!empty($profileBtnRow) ? $profileBtnRow : null,
 					[
 						['text' => tr_helper('bot', 'btn_tx_approve'), 'callback_data' => 'TXAPPROVE:' . $tx->id],
 						['text' => tr_helper('bot', 'btn_tx_reject'),  'callback_data' => 'TXREJECT:'  . $tx->id],
 					],
-				],
+				])),
 			];
 
 			// ارسال دوباره همون file_id به ادمین (بدون آپلود مجدد)
@@ -171,6 +185,14 @@ class ReceiptHandler implements Handler
 			}
 		}
 		return $escaped;
+	}
+
+	private function extractUsernameFromText(string $text): ?string
+	{
+		if (preg_match('/(?:https?:\/\/t\.me\/|@)([A-Za-z0-9_]{5,32})/i', $text, $m)) {
+			return $m[1];
+		}
+		return null;
 	}
 }
 

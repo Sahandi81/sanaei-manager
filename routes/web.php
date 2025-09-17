@@ -55,6 +55,14 @@ Route::get('test', function (){
 //	$order = \Modules\Shop\Models\Order::query()->findOrFail(1);
 //	(new OrderActivationService())->activateOrder($order);
 //	return (new DeactivateExceededTrafficOrders())->handle();
-	(new \Modules\Server\Services\TrafficSyncService())->syncTraffic();
-//	(new ClientProvisioningService())->provisionUser(\Modules\Shop\Models\Order::find(265));
+//	(new \Modules\Server\Services\TrafficSyncService())->syncTraffic();
+//	(new ClientProvisioningService())->provisionUser(\Modules\Shop\Models\Order::find(268));
+
+//	$order = \Modules\Shop\Models\Order::query()->find(254);
+//	$product = $order->product;
+//	(new SyncUserService())->processOrderForNewServers($order, $product);
+
+	\Illuminate\Support\Facades\Artisan::call('servers:sync-users');
+
+//	\Illuminate\Support\Facades\Artisan::call('servers:sync-traffic');
 });

@@ -18,13 +18,20 @@ class SupportHandler implements Handler
 
 	public function handle(User $owner, array $update): void
 	{
-		$cb  = $update['callback_query'] ?? [];
-		$m   = $cb['message'] ?? [];
-		$chatId    = $m['chat']['id'] ?? null;
-		$messageId = $m['message_id'] ?? null;
+		$cb = $update['callback_query'] ?? null;
+		if (!$cb) return;
+
+		$botToken  = $owner->telegram_bot_token;
+		$chatId    = $cb['message']['chat']['id'] ?? null;
+		$messageId = $cb['message']['message_id'] ?? null;
+		$cbId      = $cb['id'] ?? null;
 		if (!$chatId || !$messageId) return;
 
 		$text = $this->msg->render('SupportText', ['support_id' => '@Satify_supp']);
-		$this->tg->editMessage($owner->telegram_bot_token, $chatId, (int)$messageId, $text, $this->ikb->backToMenu());
+		$text = escapeMarkdownV2PreserveCode($text);
+		$kb   = $this->ikb->backToMenu(); // باید آرایه reply_markup معتبر برگرداند
+
+		// استفاده از safeEditMessage تا خطای "message is not modified" هندل شود
+		$this->tg->safeEditMessage($botToken, $chatId, (int)$messageId, $text, $kb, 'MarkdownV2', $cbId);
 	}
 }
