@@ -29,7 +29,6 @@ use Modules\QrGenerator\Services\QrGeneratorService;
 use Modules\Shop\Http\Requests\OrderRequest;
 use Modules\Shop\Models\Order;
 use Modules\Shop\Models\Product;
-use Symfony\Component\Yaml\Yaml;
 
 
 class OrderController extends Controller
@@ -112,7 +111,7 @@ class OrderController extends Controller
 
 		// ===== پایه‌ها
 		$clientName  = $order->client->name ?? 'کاربر';
-		$channelAt   = '@Satify_vpn';
+		$channelAt   = '@Satify_vpn';            // اگر از config می‌گیری، اینجا بخوان
 		$channelUrl  = 't.me/Satify_vpn';
 		$displayName = '⚡️ ' . $channelAt . ' | ' . $clientName;
 
@@ -120,28 +119,30 @@ class OrderController extends Controller
 
 		$totalBytes = (int) max(0, ($order->traffic_gb ?? 0) * 1024 * 1024 * 1024);
 		$usedBytes  = (int) max(0, ($order->used_traffic_gb ?? 0) * 1024 * 1024 * 1024);
-		$expireTs   = $order->expires_at ? Carbon::parse($order->expires_at)->getTimestamp() : 0;
+		$leftBytes  = max(0, $totalBytes - $usedBytes);
 
-		// ===== نودهای اطلاع‌رسان (نمایشی) فقط برای کلاینت‌های v2
+		$expireTs  = $order->expires_at ? Carbon::parse($order->expires_at)->getTimestamp() : 0;
+		$expireStr = $order->expires_at
+			? (Carbon::parse($order->expires_at)->timezone(config('app.timezone', 'UTC'))->diff()->days . ' ' . tr_helper('contents', 'Days'))
+			: '∞';
+
+		// ===== نودهای اطلاع‌رسان (نمایشی)
 		$infoNode1 = $this->vlessInfoNode("{$displayName} — کانال: {$channelUrl}");
-		$infoNode2 = $this->vlessInfoNode("باقیمانده: " . $this->humanGB(max(0, $totalBytes - $usedBytes)) . " از " . ($order->traffic_gb ?? 0) . " GB");
-		$infoNode3 = $this->vlessInfoNode("• انقضا: " . ($order->expires_at
-				? (Carbon::parse($order->expires_at)->timezone(config('app.timezone', 'UTC'))->diff()->days . ' ' . tr_helper('contents', 'Days'))
-				: '∞'));
+		$infoNode2 = $this->vlessInfoNode("باقیمانده: " . $this->humanGB($leftBytes) . " از " . ($order->traffic_gb ?? 0) . " GB");
+		$infoNode3 = $this->vlessInfoNode("• انقضا: {$expireStr}");
 
 		$bodyPlain = collect([$infoNode1, $infoNode2, $infoNode3])->merge($links)->implode("\n");
 
-		// ===== تشخیص حالت
+		// ===== تشخیص حالت (وب‌ویو یا متن)
 		$request = request();
 		$ua      = Str::lower($request->userAgent() ?? '');
 		$accept  = Str::lower($request->header('accept', ''));
 
-		$forceWeb   = $request->boolean('web');
-		$forceRaw   = $request->boolean('raw') || $request->has('base64');
-		$wantClash  = $request->boolean('clash') || $request->query('format') === 'clash'
-			|| Str::contains($accept, ['application/yaml','text/yaml'])
-			|| Str::contains($ua, ['clash','clash-verge','clash.meta','clashx']);
+		// پارامترهای اجباری اختیاری
+		$forceWeb = $request->boolean('web');
+		$forceRaw = $request->boolean('raw') || $request->has('base64'); // base64 یعنی متن
 
+		// تشخیص کلاینت‌های اشتراک (heuristic)
 		$isClientApp = (function(string $ua): bool {
 			$tokens = [
 				'v2rayng','v2rayn','v2box','hiddify','sing-box','singbox','nekobox',
@@ -157,17 +158,22 @@ class OrderController extends Controller
 			return Str::contains($ua, $browserTokens);
 		})($ua);
 
-		$wantsWeb = !$wantClash && ($forceWeb || (!$forceRaw && (!$isClientApp && (Str::contains($accept, 'text/html') || $looksLikeBrowser))));
+		// تصمیم نهایی
+		$wantsWeb = $forceWeb || (!$forceRaw && (!$isClientApp && (Str::contains($accept, 'text/html') || $looksLikeBrowser)));
 
 		if ($wantsWeb) {
+			$subscriptionUrl = route('shop.orders.subs', $order->subs); // یا روت خودت
+			$expiresAtIso    = $order->expires_at ? Carbon::parse($order->expires_at)->toIso8601String() : null;
+			$resetInterval   = $order->reset_interval ?? 'no_reset';
+			$qrUrl           = $order->qr_path ? asset('storage/' . $order->qr_path) : null;
 			return response()->view('shop::orders.subs', [
 				'clientName'      => $clientName,
 				'channelAt'       => $channelAt,
 				'configs'         => $links->all(),
 				'totalGB'         => (float) ($order->traffic_gb ?? 0),
 				'usedGB'          => (float) ($order->used_traffic_gb ?? 0),
-				'totalBytes'      => $totalBytes,
-				'usedBytes'       => $usedBytes,
+				'totalBytes'      => (int) max(0, ($order->traffic_gb ?? 0) * 1024 * 1024 * 1024),
+				'usedBytes'       => (int) max(0, ($order->used_traffic_gb ?? 0) * 1024 * 1024 * 1024),
 				'expiresAt'       => $order->expires_at ? Carbon::parse($order->expires_at)->toIso8601String() : null,
 				'resetInterval'   => $order->reset_interval ?? 'no_reset',
 				'subscriptionUrl' => route('shop.orders.subs', $order->subs),
@@ -179,78 +185,7 @@ class OrderController extends Controller
 			]);
 		}
 
-		// ===== خروجی Clash YAML
-		if ($wantClash) {
-			$proxies = [];
-			foreach ($links as $idx => $link) {
-				$parsed = $this->linkToClashProxy($link, $idx + 1, $displayName);
-				if ($parsed) $proxies[] = $parsed;
-			}
-
-			// اگر هیچ پراکسی parse نشد، خطا نده: YAML حداقلی
-			$proxyNames = array_map(fn($p) => $p['name'] ?? ('Proxy-'.$p['server'] ?? 'P'), $proxies);
-
-			$yaml = [
-				// گزینه‌های پایه
-				'mixed-port' => 7890,
-				'allow-lan'  => true,
-				'mode'       => 'rule',
-				'log-level'  => 'info',
-				'ipv6'       => false,
-
-				// هدر اطلاعاتی برای بعضی کلاینت‌ها (غیراستاندارد، ولی بدرد مانیتورینگ می‌خوره)
-				'profile' => [
-					'store-selected' => true,
-					'store-fake-ip'  => true,
-				],
-
-				// لیست پراکسی‌ها
-				'proxies' => $proxies,
-
-				// گروه‌ها
-				'proxy-groups' => [
-					[
-						'name' => '♻️ Auto',
-						'type' => 'url-test',
-						'url'  => 'http://www.gstatic.com/generate_204',
-						'interval' => 300,
-						'tolerance'=> 50,
-						'proxies' => $proxyNames,
-					],
-					[
-						'name'   => '🔰 Select',
-						'type'   => 'select',
-						'proxies'=> array_merge(['♻️ Auto'], $proxyNames),
-					],
-					[
-						'name'   => '🌍 Direct',
-						'type'   => 'select',
-						'proxies'=> ['DIRECT','♻️ Auto','🔰 Select'],
-					],
-					[
-						'name'   => '🛡️ Block',
-						'type'   => 'select',
-						'proxies'=> ['REJECT','DIRECT'],
-					],
-				],
-
-				// قواعد ساده (می‌تونی با لیست‌ها/دومن‌لیست‌ها جایگزین کنی)
-				'rules' => [
-					'DOMAIN,clash.razord.top,DIRECT',
-					'DOMAIN,yacd.haishan.me,DIRECT',
-					'GEOIP,IR,DIRECT',
-					'MATCH,🔰 Select',
-				],
-			];
-
-			$out = Yaml::dump($yaml, 6, 2, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK);
-			return response($out, 200)
-				->header('Content-Type', 'application/yaml; charset=utf-8')
-				->header('Cache-Control', 'no-store, no-cache, must-revalidate')
-				->header('Subscription-Userinfo', "upload=0; download={$usedBytes}; total={$totalBytes}; expire={$expireTs}");
-		}
-
-		// ===== خروجی متن برای کلاینت‌های v2ray/sing-box و ...
+		// ===== خروجی متن سابسکریپشن (برای کلاینت‌ها)
 		if ($request->query('base64')) {
 			return response(base64_encode($bodyPlain), 200)
 				->header('Content-Type', 'text/plain')
@@ -258,183 +193,13 @@ class OrderController extends Controller
 		}
 
 		$profileTitleHeader = Str::contains($ua, 'hiddify')
-			? 'base64:' . base64_encode($displayName)
-			: (Str::ascii($displayName) ?: ltrim($channelAt, '@'));
+			? 'base64:' . base64_encode($displayName)              // Hiddify: UTF-8 پشتیبانی
+			: (Str::ascii($displayName) ?: ltrim($channelAt, '@')); // سایر کلاینت‌ها: ASCII امن
 
 		return response($bodyPlain, 200)
 			->header('Content-Type', 'text/plain; charset=utf-8')
 			->header('Cache-Control', 'no-store, no-cache, must-revalidate')
 			->header('Profile-Title', $profileTitleHeader)
 			->header('Subscription-Userinfo', "upload=0; download={$usedBytes}; total={$totalBytes}; expire={$expireTs}");
-	}
-	private function linkToClashProxy(string $link, int $seq, string $fallbackName = 'Node'): ?array
-	{
-		try {
-			$u = trim($link);
-
-			if (Str::startsWith($u, 'vmess://')) {
-				// vmess => base64(json)
-				$payload = base64_decode(substr($u, 8), true);
-				if (!$payload) return null;
-				$j = json_decode($payload, true);
-				if (!is_array($j)) return null;
-
-				$name = $j['ps'] ?? "VMESS-{$seq}";
-				return [
-					'type'   => 'vmess',
-					'name'   => $name,
-					'server' => $j['add'] ?? '0.0.0.0',
-					'port'   => (int)($j['port'] ?? 443),
-					'uuid'   => $j['id'] ?? '',
-					'alterId'=> (int)($j['aid'] ?? 0),
-					'cipher' => 'auto',
-					'tls'    => ($j['tls'] ?? '') === 'tls',
-					'servername' => $j['sni'] ?? null,
-					'network'=> $j['net'] ?? 'tcp',
-					'ws-opts'=> ($j['net'] ?? '') === 'ws' ? [
-						'path' => $j['path'] ?? '/',
-						'headers' => array_filter([
-							'Host' => $j['host'] ?? null,
-						]),
-					] : null,
-				];
-			}
-
-			if (Str::startsWith($u, 'vless://')) {
-				// vless://<uuid>@host:port?param=...#name
-				$parts = parse_url($u);
-				if (!$parts || empty($parts['user']) || empty($parts['host']) || empty($parts['port'])) return null;
-
-				parse_str($parts['query'] ?? '', $q);
-				$name = isset($parts['fragment']) ? urldecode($parts['fragment']) : "VLESS-{$seq}";
-
-				$flow = $q['flow'] ?? null; // xtls-rprx-vision برای reality
-				$security = $q['security'] ?? '';
-				$sni = $q['sni'] ?? $q['host'] ?? null;
-
-				$network = $q['type'] ?? $q['network'] ?? 'tcp';
-				$grpcServiceName = $q['serviceName'] ?? null;
-
-				$obj = [
-					'type'   => 'vless',
-					'name'   => $name,
-					'server' => $parts['host'],
-					'port'   => (int)$parts['port'],
-					'uuid'   => $parts['user'],
-					'udp'    => true,
-					'tls'    => in_array($security, ['tls','reality'], true),
-					'servername' => $sni,
-					'flow'   => $flow,
-					'network'=> $network,
-				];
-
-				if ($network === 'ws') {
-					$obj['ws-opts'] = [
-						'path' => $q['path'] ?? '/',
-						'headers' => array_filter([
-							'Host' => $q['host'] ?? $sni ?? null,
-						]),
-					];
-				} elseif ($network === 'grpc') {
-					$obj['grpc-opts'] = [
-						'grpc-service-name' => $grpcServiceName ?? 'grpc',
-					];
-				} elseif ($network === 'tcp' && ($q['headerType'] ?? '') === 'http') {
-					$obj['http-opts'] = [
-						'method' => 'GET',
-						'path'   => [$q['path'] ?? '/'],
-						'headers'=> array_filter([
-							'Host' => $q['host'] ?? $sni ?? null,
-						]),
-					];
-					$obj['network'] = 'http'; // در Meta، tcp+http با http تعریف می‌شود
-				}
-
-				if (($security ?? '') === 'reality') {
-					// پارامترهای Reality
-					if (!empty($q['pbk'])) $obj['reality-opts']['public-key'] = $q['pbk'];
-					if (!empty($q['sid'])) $obj['reality-opts']['short-id']   = $q['sid'];
-				}
-
-				return $obj;
-			}
-
-			if (Str::startsWith($u, 'trojan://')) {
-				// trojan://password@host:port?peer=sni&security=tls&type=ws&path=/#name
-				$parts = parse_url($u);
-				if (!$parts || empty($parts['user']) || empty($parts['host']) || empty($parts['port'])) return null;
-				parse_str($parts['query'] ?? '', $q);
-				$name = isset($parts['fragment']) ? urldecode($parts['fragment']) : "TROJAN-{$seq}";
-
-				$network = $q['type'] ?? 'tcp';
-				$obj = [
-					'type'   => 'trojan',
-					'name'   => $name,
-					'server' => $parts['host'],
-					'port'   => (int)$parts['port'],
-					'password' => $parts['user'],
-					'sni'    => $q['sni'] ?? $q['peer'] ?? null,
-					'udp'    => true,
-					'network'=> $network,
-				];
-
-				if ($network === 'ws') {
-					$obj['ws-opts'] = [
-						'path' => $q['path'] ?? '/',
-						'headers' => array_filter([
-							'Host' => $q['host'] ?? ($q['sni'] ?? null),
-						]),
-					];
-				} elseif ($network === 'grpc') {
-					$obj['grpc-opts'] = [
-						'grpc-service-name' => $q['serviceName'] ?? 'grpc',
-					];
-				}
-
-				return $obj;
-			}
-
-			if (Str::startsWith($u, 'ss://')) {
-				// ss://base64(method:password)@host:port#name  یا  ss://method:password@host:port#name
-				$raw = substr($u, 5);
-				$name = 'SS-'.$seq;
-
-				// جداسازی فرگمنت
-				if (str_contains($raw, '#')) {
-					[$raw, $frag] = explode('#', $raw, 2);
-					$name = urldecode($frag) ?: $name;
-				}
-
-				if (str_contains($raw, '@')) {
-					// حالت غیر base64
-					[$cred, $addr] = explode('@', $raw, 2);
-					[$method, $password] = explode(':', $cred, 2);
-					[$host, $port] = explode(':', $addr, 2);
-				} else {
-					// حالت base64
-					$dec = base64_decode($raw, true);
-					if (!$dec || !str_contains($dec, '@')) return null;
-					[$cred, $addr] = explode('@', $dec, 2);
-					[$method, $password] = explode(':', $cred, 2);
-					[$host, $port] = explode(':', $addr, 2);
-				}
-
-				return [
-					'type'   => 'ss',
-					'name'   => $name,
-					'server' => $host,
-					'port'   => (int)$port,
-					'cipher' => $method,
-					'password' => $password,
-					'udp'    => true,
-				];
-			}
-
-			return null;
-		} catch (\Throwable $e) {
-			// لاگ کن که بعداً دیباگ کنی
-			\Log::warning('Subs link parse failed', ['e' => $e->getMessage(), 'link' => $link]);
-			return null;
-		}
 	}
 }
