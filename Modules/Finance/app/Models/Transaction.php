@@ -78,26 +78,30 @@ class Transaction extends Model
 
 	public static function getPendingTransactions(): Collection
 	{
-		$userAdminStatus = Auth::user()->role->is_admin;
+		$userAdminStatus = Auth::user()->role->full_access;
 		if ($userAdminStatus) {
 			return self::query()
 				->where('status', self::STATUS_PENDING)
 				->get();
 		}
+		$users = User::getOwnUsers()->pluck('id');
 		return self::query()
 			->where('status', self::STATUS_PENDING)
 			->where('user_id', Auth::id())
+			->orWhereIn('user_id', $users)
 			->get();
 	}
 
 	public static function paginate($perPage = 25): LengthAwarePaginator
 	{
-		$userAdminStatus = Auth::user()->role->is_admin;
+		$userAdminStatus = Auth::user()->role->full_access;
 		if ($userAdminStatus) {
 			return self::query()->latest()->paginate($perPage);
 		}
+		$users = User::getOwnUsers()->pluck('id');
 		return self::query()
 			->where('user_id', Auth::id())
+			->orWhereIn('user_id', $users)
 			->latest()
 			->paginate($perPage);
 	}

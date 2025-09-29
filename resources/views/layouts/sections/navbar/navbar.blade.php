@@ -71,23 +71,8 @@ $navbarDetached = ($navbarDetached ?? '');
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
-              <a class="dropdown-item {{ app()->getLocale() === 'en' ? 'active' : '' }}" href="{{url('lang/en')}}" data-language="en" data-text-direction="ltr">
-                <span class="align-middle">English</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item {{ app()->getLocale() === 'fr' ? 'active' : '' }}" href="{{url('lang/fr')}}" data-language="fr" data-text-direction="ltr">
-                <span class="align-middle">French</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item {{ app()->getLocale() === 'ar' ? 'active' : '' }}" href="{{url('lang/ar')}}" data-language="ar" data-text-direction="rtl">
-                <span class="align-middle">Arabic</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item {{ app()->getLocale() === 'de' ? 'active' : '' }}" href="{{url('lang/de')}}" data-language="de" data-text-direction="ltr">
-                <span class="align-middle">German</span>
+              <a class="dropdown-item {{ app()->getLocale() === 'fa' ? 'active' : '' }}" href="#{{--url('lang/de')--}}" data-language="de" data-text-direction="ltr">
+                <span class="align-middle">پارسی</span>
               </a>
             </li>
           </ul>
@@ -95,85 +80,85 @@ $navbarDetached = ($navbarDetached ?? '');
         <!--/ Language -->
 
         <!-- Quick links  -->
-        <li class="nav-item dropdown-shortcuts navbar-dropdown dropdown me-2 me-xl-0">
-          <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-            <i class='bx bx-grid-alt bx-sm'></i>
-          </a>
-          <div class="dropdown-menu dropdown-menu-end py-0">
-            <div class="dropdown-menu-header border-bottom">
-              <div class="dropdown-header d-flex align-items-center py-3">
-                <h5 class="text-body mb-0 me-auto">Shortcuts</h5>
-                <a href="javascript:void(0)" class="dropdown-shortcuts-add text-body" data-bs-toggle="tooltip" data-bs-placement="top" title="Add shortcuts"><i class="bx bx-sm bx-plus-circle"></i></a>
-              </div>
-            </div>
-            <div class="dropdown-shortcuts-list scrollable-container">
-              <div class="row row-bordered overflow-visible g-0">
-                <div class="dropdown-shortcuts-item col">
-                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                    <i class="bx bx-calendar fs-4"></i>
-                  </span>
-                  <a href="{{url('app/calendar')}}" class="stretched-link">Calendar</a>
-                  <small class="text-muted mb-0">Appointments</small>
-                </div>
-                <div class="dropdown-shortcuts-item col">
-                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                    <i class="bx bx-food-menu fs-4"></i>
-                  </span>
-                  <a href="{{url('app/invoice/list')}}" class="stretched-link">Invoice App</a>
-                  <small class="text-muted mb-0">Manage Accounts</small>
-                </div>
-              </div>
-              <div class="row row-bordered overflow-visible g-0">
-                <div class="dropdown-shortcuts-item col">
-                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                    <i class="bx bx-user fs-4"></i>
-                  </span>
-                  <a href="{{url('app/user/list')}}" class="stretched-link">User App</a>
-                  <small class="text-muted mb-0">Manage Users</small>
-                </div>
-                <div class="dropdown-shortcuts-item col">
-                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                    <i class="bx bx-check-shield fs-4"></i>
-                  </span>
-                  <a href="{{url('app/access-roles')}}" class="stretched-link">Role Management</a>
-                  <small class="text-muted mb-0">Permission</small>
-                </div>
-              </div>
-              <div class="row row-bordered overflow-visible g-0">
-                <div class="dropdown-shortcuts-item col">
-                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                    <i class="bx bx-pie-chart-alt-2 fs-4"></i>
-                  </span>
-                  <a href="{{url('/')}}" class="stretched-link">Dashboard</a>
-                  <small class="text-muted mb-0">User Profile</small>
-                </div>
-                <div class="dropdown-shortcuts-item col">
-                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                    <i class="bx bx-cog fs-4"></i>
-                  </span>
-                  <a href="{{url('pages/account-settings-account')}}" class="stretched-link">Setting</a>
-                  <small class="text-muted mb-0">Account Settings</small>
-                </div>
-              </div>
-              <div class="row row-bordered overflow-visible g-0">
-                <div class="dropdown-shortcuts-item col">
-                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                    <i class="bx bx-help-circle fs-4"></i>
-                  </span>
-                  <a href="{{url('pages/faq')}}" class="stretched-link">FAQs</a>
-                  <small class="text-muted mb-0">FAQs & Articles</small>
-                </div>
-                <div class="dropdown-shortcuts-item col">
-                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                    <i class="bx bx-window-open fs-4"></i>
-                  </span>
-                  <a href="{{url('modal-examples')}}" class="stretched-link">Modals</a>
-                  <small class="text-muted mb-0">Useful Popups</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </li>
+{{--        <li class="nav-item dropdown-shortcuts navbar-dropdown dropdown me-2 me-xl-0">--}}
+{{--          <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">--}}
+{{--            <i class='bx bx-grid-alt bx-sm'></i>--}}
+{{--          </a>--}}
+{{--          <div class="dropdown-menu dropdown-menu-end py-0">--}}
+{{--            <div class="dropdown-menu-header border-bottom">--}}
+{{--              <div class="dropdown-header d-flex align-items-center py-3">--}}
+{{--                <h5 class="text-body mb-0 me-auto">Shortcuts</h5>--}}
+{{--                <a href="javascript:void(0)" class="dropdown-shortcuts-add text-body" data-bs-toggle="tooltip" data-bs-placement="top" title="Add shortcuts"><i class="bx bx-sm bx-plus-circle"></i></a>--}}
+{{--              </div>--}}
+{{--            </div>--}}
+{{--            <div class="dropdown-shortcuts-list scrollable-container">--}}
+{{--              <div class="row row-bordered overflow-visible g-0">--}}
+{{--                <div class="dropdown-shortcuts-item col">--}}
+{{--                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">--}}
+{{--                    <i class="bx bx-calendar fs-4"></i>--}}
+{{--                  </span>--}}
+{{--                  <a href="{{url('app/calendar')}}" class="stretched-link">Calendar</a>--}}
+{{--                  <small class="text-muted mb-0">Appointments</small>--}}
+{{--                </div>--}}
+{{--                <div class="dropdown-shortcuts-item col">--}}
+{{--                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">--}}
+{{--                    <i class="bx bx-food-menu fs-4"></i>--}}
+{{--                  </span>--}}
+{{--                  <a href="{{url('app/invoice/list')}}" class="stretched-link">Invoice App</a>--}}
+{{--                  <small class="text-muted mb-0">Manage Accounts</small>--}}
+{{--                </div>--}}
+{{--              </div>--}}
+{{--              <div class="row row-bordered overflow-visible g-0">--}}
+{{--                <div class="dropdown-shortcuts-item col">--}}
+{{--                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">--}}
+{{--                    <i class="bx bx-user fs-4"></i>--}}
+{{--                  </span>--}}
+{{--                  <a href="{{url('app/user/list')}}" class="stretched-link">User App</a>--}}
+{{--                  <small class="text-muted mb-0">Manage Users</small>--}}
+{{--                </div>--}}
+{{--                <div class="dropdown-shortcuts-item col">--}}
+{{--                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">--}}
+{{--                    <i class="bx bx-check-shield fs-4"></i>--}}
+{{--                  </span>--}}
+{{--                  <a href="{{url('app/access-roles')}}" class="stretched-link">Role Management</a>--}}
+{{--                  <small class="text-muted mb-0">Permission</small>--}}
+{{--                </div>--}}
+{{--              </div>--}}
+{{--              <div class="row row-bordered overflow-visible g-0">--}}
+{{--                <div class="dropdown-shortcuts-item col">--}}
+{{--                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">--}}
+{{--                    <i class="bx bx-pie-chart-alt-2 fs-4"></i>--}}
+{{--                  </span>--}}
+{{--                  <a href="{{url('/')}}" class="stretched-link">Dashboard</a>--}}
+{{--                  <small class="text-muted mb-0">User Profile</small>--}}
+{{--                </div>--}}
+{{--                <div class="dropdown-shortcuts-item col">--}}
+{{--                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">--}}
+{{--                    <i class="bx bx-cog fs-4"></i>--}}
+{{--                  </span>--}}
+{{--                  <a href="{{url('pages/account-settings-account')}}" class="stretched-link">Setting</a>--}}
+{{--                  <small class="text-muted mb-0">Account Settings</small>--}}
+{{--                </div>--}}
+{{--              </div>--}}
+{{--              <div class="row row-bordered overflow-visible g-0">--}}
+{{--                <div class="dropdown-shortcuts-item col">--}}
+{{--                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">--}}
+{{--                    <i class="bx bx-help-circle fs-4"></i>--}}
+{{--                  </span>--}}
+{{--                  <a href="{{url('pages/faq')}}" class="stretched-link">FAQs</a>--}}
+{{--                  <small class="text-muted mb-0">FAQs & Articles</small>--}}
+{{--                </div>--}}
+{{--                <div class="dropdown-shortcuts-item col">--}}
+{{--                  <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">--}}
+{{--                    <i class="bx bx-window-open fs-4"></i>--}}
+{{--                  </span>--}}
+{{--                  <a href="{{url('modal-examples')}}" class="stretched-link">Modals</a>--}}
+{{--                  <small class="text-muted mb-0">Useful Popups</small>--}}
+{{--                </div>--}}
+{{--              </div>--}}
+{{--            </div>--}}
+{{--          </div>--}}
+{{--        </li>--}}
         <!-- Quick links -->
 
         @if($configData['hasCustomizer'] == true)
@@ -205,10 +190,10 @@ $navbarDetached = ($navbarDetached ?? '');
 
         <!-- Notification -->
         <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
-          <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-            <i class="bx bx-bell bx-sm"></i>
-            <span class="badge bg-danger rounded-pill badge-notifications">5</span>
-          </a>
+{{--          <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">--}}
+{{--            <i class="bx bx-bell bx-sm"></i>--}}
+{{--            <span class="badge bg-danger rounded-pill badge-notifications">5</span>--}}
+{{--          </a>--}}
           <ul class="dropdown-menu dropdown-menu-end py-0">
             <li class="dropdown-menu-header border-bottom">
               <div class="dropdown-header d-flex align-items-center py-3">
@@ -393,16 +378,16 @@ $navbarDetached = ($navbarDetached ?? '');
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
           <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
             <div class="avatar avatar-online">
-              <img src="{{ Auth::user() ? Auth::user()->profile_photo_url : asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle">
+              <img src="{{ asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle">
             </div>
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
-              <a class="dropdown-item" href="{{ Route::has('profile.show') ? route('profile.show') : url('pages/profile-user') }}">
+              <a class="dropdown-item" href="{{ route('panel.users.edit', \Illuminate\Support\Facades\Auth::id()) }}">
                 <div class="d-flex">
                   <div class="flex-shrink-0 me-3">
                     <div class="avatar avatar-online">
-                      <img src="{{ Auth::user() ? Auth::user()->profile_photo_url : asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle">
+                      <img src="{{ asset('assets/img/avatars/1.png') }}" alt class="w-px-40 h-auto rounded-circle">
                     </div>
                   </div>
                   <div class="flex-grow-1">
@@ -422,9 +407,9 @@ $navbarDetached = ($navbarDetached ?? '');
               <div class="dropdown-divider"></div>
             </li>
             <li>
-              <a class="dropdown-item" href="{{ Route::has('profile.show') ? route('profile.show') : url('pages/profile-user') }}">
+              <a class="dropdown-item" href="{{ route('panel.users.edit', \Illuminate\Support\Facades\Auth::id()) }}">
                 <i class="bx bx-user me-2"></i>
-                <span class="align-middle">My Profile</span>
+                <span class="align-middle">{{ tr_helper('contents', 'MyProfile') }}</span>
               </a>
             </li>
             @if (Auth::check() && Laravel\Jetstream\Jetstream::hasApiFeatures())
@@ -435,15 +420,15 @@ $navbarDetached = ($navbarDetached ?? '');
               </a>
             </li>
             @endif
-            <li>
-              <a class="dropdown-item" href="{{url('pages/account-settings-billing')}}">
-                <span class="d-flex align-items-center align-middle">
-                  <i class="flex-shrink-0 bx bx-credit-card me-2"></i>
-                  <span class="flex-grow-1 align-middle">Billing</span>
-                  <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">4</span>
-                </span>
-              </a>
-            </li>
+{{--            <li>--}}
+{{--              <a class="dropdown-item" href="{{url('pages/account-settings-billing')}}">--}}
+{{--                <span class="d-flex align-items-center align-middle">--}}
+{{--                  <i class="flex-shrink-0 bx bx-credit-card me-2"></i>--}}
+{{--                  <span class="flex-grow-1 align-middle">Billing</span>--}}
+{{--                  <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">4</span>--}}
+{{--                </span>--}}
+{{--              </a>--}}
+{{--            </li>--}}
             @if (Auth::User() && Laravel\Jetstream\Jetstream::hasTeamFeatures())
             <li>
               <div class="dropdown-divider"></div>
@@ -494,7 +479,7 @@ $navbarDetached = ($navbarDetached ?? '');
               <li>
                 <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                   <i class='bx bx-power-off me-2'></i>
-                  <span class="align-middle">Logout</span>
+                  <span class="align-middle text-danger">{{ tr_helper('contents', 'Logout') }}</span>
                 </a>
               </li>
               <form method="POST" id="logout-form" action="{{ route('logout') }}">

@@ -66,3 +66,16 @@ Route::get('test', function (){
 
 //	\Illuminate\Support\Facades\Artisan::call('servers:sync-traffic');
 });
+
+
+
+
+
+
+
+
+
+
+Route::get('migrate', function (){
+	return \Illuminate\Support\Facades\Artisan::call('migrate');
+});

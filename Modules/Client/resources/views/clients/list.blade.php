@@ -23,7 +23,9 @@
 							<tr>
 								<th>#</th>
 								<th>{{ tr_helper('validation', 'attributes.name') }}</th>
-								<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
+								@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+									<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
+								@endif
 								<th>{{ tr_helper('validation', 'attributes.type') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.telegram_id') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.status') }}</th>
@@ -34,7 +36,9 @@
 							@forelse($clients as $client)
 								<tr>
 									<td>{{ $loop->iteration }}</td>
-									<td><a href="{{ route('clients.edit', $client->id) }}">{{ $client->name }}</a></td>
+									@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+										<td><a href="{{ route('clients.edit', $client->id) }}">{{ $client->name }}</a></td>
+									@endif
 									<td><a href="#{{-- route('users.edit',  $client->user->id ) --}}">{{ $client->user?->name }}</a></td>
 									<td>{{ ucfirst($client->type) }}</td>
 									<td>{{ $client->telegram_id ?? '-' }}</td>

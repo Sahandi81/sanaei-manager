@@ -18,7 +18,9 @@
 							<tr>
 								<th>#</th>
 								<th> {{tr_helper('validation', 'attributes.name')}} </th>
-								<th> {{tr_helper('validation', 'attributes.user_id')}} </th>
+								@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+									<th> {{tr_helper('validation', 'attributes.user_id')}} </th>
+								@endif
 								<th> {{tr_helper('validation', 'attributes.ip')}} </th>
 								<th> {{tr_helper('validation', 'attributes.location')}} </th>
 								<th> {{tr_helper('validation', 'attributes.panel_type')}} </th>
@@ -30,10 +32,18 @@
 							</thead>
 							<tbody class="table-border-bottom-0">
 							@forelse($servers as $server)
-								<tr>
+{{--								@dd($server->toArray())--}}
+								<td>
 									<td>{{ $loop->iteration }}</td>
 									<td>{{ $server->name }}</td>
-									<td><a href="#{{-- route('users.edit',  $client->user->id ) --}}">{{ $server->user?->name }}</a></td>
+									@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+										<td>
+										@foreach($server->users as $user)
+											<a href="{{ route('panel.users.edit',  $user?->id ) }}">{{ $user?->name }}</a>
+												<br>
+										@endforeach
+										</td>
+									@endif
 									<td>{{ $server->ip }}</td>
 									<td>{{ $server->location ?? '-' }}</td>
 									<td>{{ ucfirst($server->panel_type) }}</td>

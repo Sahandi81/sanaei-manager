@@ -4,31 +4,20 @@ namespace Modules\Shop\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
-use Endroid\QrCode\Color\Color;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\ErrorCorrectionLevel as ErrorCorrectionLevelEndroid;
-use Endroid\QrCode\Logo\Logo;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\RoundBlockSizeMode;
-use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Contracts\Routing\ResponseFactory;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Modules\Client\Models\Client;
 use Modules\Finance\Http\Controllers\TransactionController;
 use Modules\Finance\Models\Transaction;
 use Modules\Logging\Traits\Loggable;
-use Modules\QrGenerator\Services\QrCodeService;
 use Modules\QrGenerator\Services\QrGeneratorService;
 use Modules\Shop\Http\Requests\OrderRequest;
 use Modules\Shop\Models\Order;
 use Modules\Shop\Models\Product;
+use stdClass;
 
 
 class OrderController extends Controller
@@ -105,14 +94,14 @@ class OrderController extends Controller
 		return ($gb >= 1 ? rtrim(rtrim(number_format($gb, 2, '.', ''), '0'), '.') : '0') . ' GB';
 	}
 
-	public function subs($subs): Application|ResponseFactory|Response
+	public function subs($subs)
 	{
 		$order = Order::with('configs', 'client')->where('subs', $subs)->firstOrFail();
 
 		// ===== پایه‌ها
 		$clientName  = $order->client->name ?? 'کاربر';
-		$channelAt   = '@Satify_vpn';            // اگر از config می‌گیری، اینجا بخوان
-		$channelUrl  = 't.me/Satify_vpn';
+		$channelAt   = $order->user->bot_id ??'@Satify_vpn';
+		$channelUrl  = $order->user->channel_id ?? 't.me/Satify_vpn';
 		$displayName = '⚡️ ' . $channelAt . ' | ' . $clientName;
 
 		$links = $order->configs->map(fn($row) => trim($row->config))->filter()->values();
@@ -130,19 +119,16 @@ class OrderController extends Controller
 		$infoNode1 = $this->vlessInfoNode("{$displayName} — کانال: {$channelUrl}");
 		$infoNode2 = $this->vlessInfoNode("باقیمانده: " . $this->humanGB($leftBytes) . " از " . ($order->traffic_gb ?? 0) . " GB");
 		$infoNode3 = $this->vlessInfoNode("• انقضا: {$expireStr}");
-
 		$bodyPlain = collect([$infoNode1, $infoNode2, $infoNode3])->merge($links)->implode("\n");
 
-		// ===== تشخیص حالت (وب‌ویو یا متن)
+		// ===== تشخیص حالت
 		$request = request();
 		$ua      = Str::lower($request->userAgent() ?? '');
 		$accept  = Str::lower($request->header('accept', ''));
 
-		// پارامترهای اجباری اختیاری
 		$forceWeb = $request->boolean('web');
-		$forceRaw = $request->boolean('raw') || $request->has('base64'); // base64 یعنی متن
+		$forceRaw = $request->boolean('raw') || $request->has('base64');
 
-		// تشخیص کلاینت‌های اشتراک (heuristic)
 		$isClientApp = (function(string $ua): bool {
 			$tokens = [
 				'v2rayng','v2rayn','v2box','hiddify','sing-box','singbox','nekobox',
@@ -152,28 +138,116 @@ class OrderController extends Controller
 			];
 			return Str::contains($ua, $tokens);
 		})($ua);
-
 		$looksLikeBrowser = (function(string $ua): bool {
 			$browserTokens = ['mozilla','chrome','safari','firefox','edg','opera','crios','fxios'];
 			return Str::contains($ua, $browserTokens);
 		})($ua);
 
-		// تصمیم نهایی
-		$wantsWeb = $forceWeb || (!$forceRaw && (!$isClientApp && (Str::contains($accept, 'text/html') || $looksLikeBrowser)));
+		// 👇 جدید: تشخیص sing-box (با UA یا پارامتر ?singbox=1 برای اجبار)
+		$isSingBox = Str::contains($ua, ['sing-box', 'singbox']) || $request->boolean('singbox');
 
+		// ===== اگر sing-box بود: خروجی JSON به سبک sing-box
+		if ($isSingBox) {
+			// 1) مبدل لینک‌های VLESS → outbound های sing-box
+			$buildOutbounds = function (Collection $links): array {
+				$nodes = [];
+				$tags  = [];
+
+				foreach ($links as $i => $uri) {
+					$nodes[] = self::vlessUriToSingBoxOutbound($uri, $tags);
+				}
+
+				// حداقل اگر چیزی parse نشد، خالی نمونیم
+				$nodes = array_values(array_filter($nodes));
+
+				// 2) selector و urltest بر اساس تگ‌ها
+				$selector = [
+					'type'     => 'selector',
+					'tag'      => 'proxy',
+					'outbounds'=> array_values(array_merge(['auto','direct'], $tags)),
+				];
+				$urltest = [
+					'type'      => 'urltest',
+					'tag'       => 'auto',
+					'interval'  => '10m',
+					'tolerance' => 50,
+					'url'       => 'http://www.gstatic.com/generate_204',
+					'outbounds' => $tags ?: [],
+				];
+				$direct = ['type' => 'direct', 'tag' => 'direct'];
+
+				return array_merge([$selector, $urltest, $direct], $nodes);
+			};
+
+			$config = [
+				'dns' => [
+					'final' => 'local-dns',
+					'rules' => [
+						['action'=>'route','clash_mode'=>'Global','server'=>'proxy-dns','source_ip_cidr'=>['172.19.0.0/30','fdfe:dcba:9876::1/126']],
+						['action'=>'route','server'=>'proxy-dns','source_ip_cidr'=>['172.19.0.0/30','fdfe:dcba:9876::1/126']],
+						['action'=>'route','clash_mode'=>'Direct','server'=>'direct-dns'],
+						['action'=>'route','rule_set'=>['geosite-ir'],'server'=>'direct-dns'],
+					],
+					'servers' => [
+						['address'=>'tcp://8.8.8.8','address_resolver'=>'local-dns','detour'=>'proxy','tag'=>'proxy-dns'],
+						['address'=>'local','detour'=>'direct','tag'=>'local-dns'],
+						['address'=>'tcp://8.8.8.8','detour'=>'direct','tag'=>'direct-dns'],
+					],
+					'strategy' => 'prefer_ipv4',
+				],
+				'inbounds' => [
+					[
+						'address' => ['172.19.0.1/30','fdfe:dcba:9876::1/126'],
+						'auto_route' => true,
+						'endpoint_independent_nat' => false,
+						'mtu' => 9000,
+						'platform' => ['http_proxy' => ['enabled'=>true,'server'=>'127.0.0.1','server_port'=>2080]],
+						'stack' => 'system',
+						'strict_route' => false,
+						'type' => 'tun',
+					],
+					['listen'=>'127.0.0.1','listen_port'=>2080,'type'=>'mixed','users'=>[]],
+				],
+				'outbounds' => $buildOutbounds($links),
+				'route' => [
+					'auto_detect_interface' => true,
+					'final' => 'proxy',
+					'rule_set' => [
+						['download_detour'=>'direct','format'=>'binary','tag'=>'geosite-private','type'=>'remote','url'=>'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/private.srs'],
+						['download_detour'=>'direct','format'=>'binary','tag'=>'geosite-ir','type'=>'remote','url'=>'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ir.srs'],
+						['download_detour'=>'direct','format'=>'binary','tag'=>'geoip-private','type'=>'remote','url'=>'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/private.srs'],
+						['download_detour'=>'direct','format'=>'binary','tag'=>'geoip-ir','type'=>'remote','url'=>'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/ir.srs'],
+					],
+					'rules' => [
+						['action'=>'sniff'],
+						['action'=>'route','clash_mode'=>'Direct','outbound'=>'direct'],
+						['action'=>'route','clash_mode'=>'Global','outbound'=>'proxy'],
+						['action'=>'hijack-dns','protocol'=>'dns'],
+						['action'=>'route','outbound'=>'direct','rule_set'=>['geoip-private','geosite-private','geosite-ir','geoip-ir']],
+					],
+				],
+			];
+
+			// هدر حجم/انقضا برای سازگاری
+			return response()->json($config, 200, [
+				'Cache-Control' => 'no-store, no-cache, must-revalidate',
+				'Profile-Title' => (Str::ascii($displayName) ?: ltrim($channelAt, '@')),
+				'Subscription-Userinfo' => "upload=0; download={$usedBytes}; total={$totalBytes}; expire={$expireTs}",
+				'Content-Disposition' => 'inline; filename="singbox-subscription.json"',
+			]);
+		}
+
+		// ===== وب‌ویو
+		$wantsWeb = $forceWeb || (!$forceRaw && (!$isClientApp && (Str::contains($accept, 'text/html') || $looksLikeBrowser)));
 		if ($wantsWeb) {
-			$subscriptionUrl = route('shop.orders.subs', $order->subs); // یا روت خودت
-			$expiresAtIso    = $order->expires_at ? Carbon::parse($order->expires_at)->toIso8601String() : null;
-			$resetInterval   = $order->reset_interval ?? 'no_reset';
-			$qrUrl           = $order->qr_path ? asset('storage/' . $order->qr_path) : null;
 			return response()->view('shop::orders.subs', [
 				'clientName'      => $clientName,
 				'channelAt'       => $channelAt,
 				'configs'         => $links->all(),
 				'totalGB'         => (float) ($order->traffic_gb ?? 0),
 				'usedGB'          => (float) ($order->used_traffic_gb ?? 0),
-				'totalBytes'      => (int) max(0, ($order->traffic_gb ?? 0) * 1024 * 1024 * 1024),
-				'usedBytes'       => (int) max(0, ($order->used_traffic_gb ?? 0) * 1024 * 1024 * 1024),
+				'totalBytes'      => $totalBytes,
+				'usedBytes'       => $usedBytes,
 				'expiresAt'       => $order->expires_at ? Carbon::parse($order->expires_at)->toIso8601String() : null,
 				'resetInterval'   => $order->reset_interval ?? 'no_reset',
 				'subscriptionUrl' => route('shop.orders.subs', $order->subs),
@@ -185,7 +259,7 @@ class OrderController extends Controller
 			]);
 		}
 
-		// ===== خروجی متن سابسکریپشن (برای کلاینت‌ها)
+		// ===== متن (سایر کلاینت‌ها)
 		if ($request->query('base64')) {
 			return response(base64_encode($bodyPlain), 200)
 				->header('Content-Type', 'text/plain')
@@ -193,8 +267,8 @@ class OrderController extends Controller
 		}
 
 		$profileTitleHeader = Str::contains($ua, 'hiddify')
-			? 'base64:' . base64_encode($displayName)              // Hiddify: UTF-8 پشتیبانی
-			: (Str::ascii($displayName) ?: ltrim($channelAt, '@')); // سایر کلاینت‌ها: ASCII امن
+			? 'base64:' . base64_encode($displayName)
+			: (Str::ascii($displayName) ?: ltrim($channelAt, '@'));
 
 		return response($bodyPlain, 200)
 			->header('Content-Type', 'text/plain; charset=utf-8')
@@ -202,4 +276,108 @@ class OrderController extends Controller
 			->header('Profile-Title', $profileTitleHeader)
 			->header('Subscription-Userinfo', "upload=0; download={$usedBytes}; total={$totalBytes}; expire={$expireTs}");
 	}
+
+	/**
+	 * لینک vless:// را به outbound sing-box تبدیل می‌کند.
+	 * - WS / gRPC
+	 * - TLS / Reality (pbk/sid) + uTLS (fp)
+	 */
+	protected static function vlessUriToSingBoxOutbound(string $uri, array &$tagCollector): ?array
+	{
+		$parts = parse_url($uri);
+		if (!is_array($parts) || !isset($parts['scheme']) || strtolower($parts['scheme']) !== 'vless') {
+			return null;
+		}
+
+		$uuid  = $parts['user'] ?? null;
+		$host  = $parts['host'] ?? null;
+		$port  = isset($parts['port']) ? (int)$parts['port'] : null;
+		$frag  = isset($parts['fragment']) ? urldecode($parts['fragment']) : null;
+
+		parse_str($parts['query'] ?? '', $q);
+
+		$type     = strtolower($q['type'] ?? 'tcp');           // ws | grpc | (tcp default)
+		$security = strtolower($q['security'] ?? 'none');      // none | tls | reality
+		$path     = isset($q['path']) ? urldecode($q['path']) : null;
+		$sni      = $q['sni'] ?? null;
+		$alpn     = isset($q['alpn']) ? array_map('trim', explode(',', $q['alpn'])) : null;
+
+		// Reality
+		$pbk      = $q['pbk'] ?? null;
+		$sid      = $q['sid'] ?? null;
+
+		// gRPC
+		$mode     = $q['mode'] ?? null;
+		$service  = $q['serviceName'] ?? $mode ?? 'gun';
+
+		// uTLS
+		$fp       = $q['fp'] ?? null;
+
+		// Tag
+		$baseTag = $frag ? Str::slug($frag, '-') : ($host ? 'vless-' . Str::slug($host, '-') : 'vless-node');
+		$tag     = $baseTag;
+		static $used = [];
+		$cnt = ($used[$tag] ?? 0) + 1; $used[$tag] = $cnt;
+		if ($cnt > 1) $tag .= "-{$cnt}";
+		$tagCollector[] = $tag;
+
+		// TLS
+		$tls = ['enabled' => $security !== 'none'];
+		if ($tls['enabled']) {
+			if ($sni)  { $tls['server_name'] = $sni; }
+			if ($alpn) { $tls['alpn'] = $alpn; }
+			if ($security === 'reality') {
+				$tls['reality'] = [
+					'enabled'    => true,
+					'public_key' => (string) $pbk,
+					'short_id'   => (string) ($sid ?? ''),
+				];
+				if ($fp) {
+					$tls['utls'] = ['enabled' => true, 'fingerprint' => $fp];
+				}
+			} elseif ($fp) {
+				// اگر TLS عادی و fp داشتیم، باز هم uTLS رو ست کن
+				$tls['utls'] = ['enabled' => true, 'fingerprint' => $fp];
+			}
+		}
+
+		// Transport: فقط برای WS و gRPC تنظیم می‌کنیم.
+		// برای TCP ساده یا هر نوع ناشناخته، اصلاً transport نذار.
+		$transport = null;
+		if ($type === 'ws') {
+			$transport = [
+				'type' => 'ws',
+				'path' => $path ?: '/',
+			];
+			// Host header فقط اگر SNI داشتیم
+			if ($sni) {
+				$transport['headers'] = ['Host' => $sni];
+			}
+		} elseif ($type === 'grpc') {
+			$transport = [
+				'type' => 'grpc',
+				'service_name' => $service ?: 'gun',
+			];
+		}
+
+		// پورت پیش‌فرض
+		if (!$port) {
+			$port = ($security !== 'none') ? 443 : 80;
+		}
+
+		$out = [
+			'type'        => 'vless',
+			'tag'         => $tag,
+			'server'      => $host,
+			'server_port' => $port,
+			'uuid'        => $uuid,
+			'tls'         => $tls,
+		];
+		if (!empty($transport)) {
+			$out['transport'] = $transport;
+		}
+
+		return $out;
+	}
+
 }

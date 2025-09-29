@@ -1,0 +1,335 @@
+{
+"dns": {
+"final": "local-dns",
+"rules": [
+{
+"action": "route",
+"clash_mode": "Global",
+"server": "proxy-dns",
+"source_ip_cidr": [
+"172.19.0.0/30",
+"fdfe:dcba:9876::1/126"
+]
+},
+{
+"action": "route",
+"server": "proxy-dns",
+"source_ip_cidr": [
+"172.19.0.0/30",
+"fdfe:dcba:9876::1/126"
+]
+},
+{
+"action": "route",
+"clash_mode": "Direct",
+"server": "direct-dns"
+},
+{
+"action": "route",
+"rule_set": [
+"geosite-ir"
+],
+"server": "direct-dns"
+}
+],
+"servers": [
+{
+"address": "tcp://8.8.8.8",
+"address_resolver": "local-dns",
+"detour": "proxy",
+"tag": "proxy-dns"
+},
+{
+"address": "local",
+"detour": "direct",
+"tag": "local-dns"
+},
+{
+"address": "tcp://8.8.8.8",
+"detour": "direct",
+"tag": "direct-dns"
+}
+],
+"strategy": "prefer_ipv4"
+},
+"inbounds": [
+{
+"address": [
+"172.19.0.1/30",
+"fdfe:dcba:9876::1/126"
+],
+"auto_route": true,
+"endpoint_independent_nat": false,
+"mtu": 9000,
+"platform": {
+"http_proxy": {
+"enabled": true,
+"server": "127.0.0.1",
+"server_port": 2080
+}
+},
+"stack": "system",
+"strict_route": false,
+"type": "tun"
+},
+{
+"listen": "127.0.0.1",
+"listen_port": 2080,
+"type": "mixed",
+"users": []
+}
+],
+"outbounds": [
+{
+"type": "selector",
+"tag": "proxy",
+"outbounds": [
+"auto",
+"direct",
+"ws-finland-2-2056",
+"xhttp-poland-6625",
+"grpc-poland-4102",
+"grpc-germany-6955",
+"tunnel-nym-bha-3233",
+"cdn-satify-vpn-1669",
+"dc-satify-vpn-8679",
+"tcp-finland-1-8481",
+"tcp-germany-6459"
+]
+},
+{
+"type": "urltest",
+"tag": "auto",
+"interval": "10m",
+"tolerance": 50,
+"url": "http://www.gstatic.com/generate_204",
+"outbounds": [
+"ws-finland-2-2056",
+"xhttp-poland-6625",
+"grpc-poland-4102",
+"grpc-germany-6955",
+"tunnel-nym-bha-3233",
+"cdn-satify-vpn-1669",
+"dc-satify-vpn-8679",
+"tcp-finland-1-8481",
+"tcp-germany-6459"
+]
+},
+{
+"type": "direct",
+"tag": "direct"
+},
+{
+"type": "vless",
+"tag": "ws-finland-2-2056",
+"server": "157.180.33.229",
+"server_port": 46587,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": false
+},
+"transport": {
+"type": "ws",
+"path": "/ws"
+}
+},
+{
+"type": "vless",
+"tag": "xhttp-poland-6625",
+"server": "test.satifyuploader.sbs",
+"server_port": 2087,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": true,
+"server_name": "test.satifyuploader.sbs",
+"alpn": [
+"h2",
+"http/1.1"
+]
+}
+},
+{
+"type": "vless",
+"tag": "grpc-poland-4102",
+"server": "91.108.249.179",
+"server_port": 2086,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": true,
+"server_name": "digikala.com",
+"reality": {
+"enabled": true,
+"public_key": "DMskoIkq-baXe0o4SsI4T3vogoBmZbL6VEeu7QMDWyc",
+"short_id": "5d3749a1"
+},
+"utls": {
+"enabled": true,
+"fingerprint": "chrome"
+}
+}
+},
+{
+"type": "vless",
+"tag": "grpc-germany-6955",
+"server": "91.107.139.192",
+"server_port": 8443,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": true,
+"server_name": "varzesh3.com",
+"reality": {
+"enabled": true,
+"public_key": "IJ7z2syr6qoo8mZI4KhoQeOU5mRNlvVsvnWxyRNNt3M",
+"short_id": "56746b8cb9"
+},
+"utls": {
+"enabled": true,
+"fingerprint": "chrome"
+}
+},
+"transport": {
+"type": "grpc",
+"service_name": "gun"
+}
+},
+{
+"type": "vless",
+"tag": "tunnel-nym-bha-3233",
+"server": "video.sahandi81.ir",
+"server_port": 8080,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": false
+}
+},
+{
+"type": "vless",
+"tag": "cdn-satify-vpn-1669",
+"server": "video.satifyuploader.sbs",
+"server_port": 8443,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": true,
+"server_name": "video.satifyuploader.sbs",
+"alpn": [
+"h2",
+"http/1.1"
+]
+},
+"transport": {
+"type": "ws",
+"path": "/lp-cdn-8sFY1",
+"headers": {
+"Host": "video.satifyuploader.sbs"
+}
+}
+},
+{
+"type": "vless",
+"tag": "dc-satify-vpn-8679",
+"server": "145.223.69.113",
+"server_port": 2096,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": true,
+"server_name": "digikala.com",
+"reality": {
+"enabled": true,
+"public_key": "ecnLxFL280dkYu2Afxe82CwrqMTCremW57dVcWlMgXQ",
+"short_id": "77"
+},
+"utls": {
+"enabled": true,
+"fingerprint": "chrome"
+}
+},
+"transport": {
+"type": "grpc",
+"service_name": "gun"
+}
+},
+{
+"type": "vless",
+"tag": "tcp-finland-1-8481",
+"server": "157.180.33.229",
+"server_port": 22401,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": false
+}
+},
+{
+"type": "vless",
+"tag": "tcp-germany-6459",
+"server": "91.107.139.192",
+"server_port": 22088,
+"uuid": "1b5ae1da-9889-11f0-b8cd-92000654a5aa",
+"tls": {
+"enabled": false
+}
+}
+],
+"route": {
+"auto_detect_interface": true,
+"final": "proxy",
+"rule_set": [
+{
+"download_detour": "direct",
+"format": "binary",
+"tag": "geosite-private",
+"type": "remote",
+"url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/private.srs"
+},
+{
+"download_detour": "direct",
+"format": "binary",
+"tag": "geosite-ir",
+"type": "remote",
+"url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ir.srs"
+},
+{
+"download_detour": "direct",
+"format": "binary",
+"tag": "geoip-private",
+"type": "remote",
+"url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/private.srs"
+},
+{
+"download_detour": "direct",
+"format": "binary",
+"tag": "geoip-ir",
+"type": "remote",
+"url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/ir.srs"
+}
+],
+"rules": [
+{
+"action": "sniff"
+},
+{
+"action": "route",
+"clash_mode": "Direct",
+"outbound": "direct"
+},
+{
+"action": "route",
+"clash_mode": "Global",
+"outbound": "proxy"
+},
+{
+"action": "hijack-dns",
+"protocol": "dns"
+},
+{
+"action": "route",
+"outbound": "direct",
+"rule_set": [
+"geoip-private",
+"geosite-private",
+"geosite-ir",
+"geoip-ir"
+]
+}
+]
+}
+}

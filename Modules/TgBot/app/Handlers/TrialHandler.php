@@ -108,7 +108,7 @@ class TrialHandler implements Handler
 			$kb = [
 				'inline_keyboard' => [
 					[
-						['text' => tr_helper('bot', 'btn_tutorials_inline'), 'url' => 'https://t.me/Satify_vpn/31'],
+						['text' => tr_helper('bot', 'btn_tutorials_inline'), 'url' => ($owner->tut_url ?? 'https://t.me/Satify_vpn/31')],
 //						['text' => tr_helper('bot','btn_tutorials_inline'), 'callback_data' => BotActions::TUT],
 					],
 				],

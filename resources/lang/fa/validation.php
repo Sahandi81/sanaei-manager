@@ -254,7 +254,7 @@ return [
 		'user_limit'		=> 'محدودیت تعداد کاربر',
 		'is_test'			=> 'نوع محصول',
 		'telegram_id'		=> 'آیدی تلگرام',
-		'parent_id'			=> 'اصل محصول',
+		'parent_id'			=> 'والد',
 		'client_id'			=> 'مشتری',
 		'currency'			=> 'واحد پول',
 		'servers'			=> 'سرورها',
@@ -264,6 +264,10 @@ return [
 		'default'			=> 'استفاده به عنوان پیشفرض',
 		'is_default'		=> 'استفاده به عنوان پیشفرض',
 		'delivery_mode'		=> 'نحوه ارسال',
+		'bot_name'			=> 'نام ربات',
+		'bot_id'			=> 'آیدی ربات',
+		'support_id'		=> 'آیدی پشتیبانی',
+		'tut_url'			=> 'لینک آموزش اتصال',
     ],
 
 	'input_placeholder' => [

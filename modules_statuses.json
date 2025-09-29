@@ -8,5 +8,6 @@
     "Finance": true,
     "FileManager": true,
     "QrGenerator": true,
-    "TgBot": true
+    "TgBot": true,
+    "Subscription": true
 }

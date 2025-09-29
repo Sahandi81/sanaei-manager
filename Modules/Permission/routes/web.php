@@ -16,7 +16,7 @@ use Modules\Permission\App\Http\Controllers\PermissionController;
 |
 */
 
-Route::group(['prefix' => '/admin/panel/roles', 'as' => 'admin.panel.roles.', 'middleware' => ['auth:web', 'access', 'is_admin']], function (){
+Route::group(['prefix' => '/admin/panel/roles', 'as' => 'admin.panel.roles.', 'middleware' => ['auth:sanctum']], function (){
 
 	Route::get('/',								[AdminRoleController::class, 'index'])								->name('index');
 	Route::get('/create',						[AdminRoleController::class, 'create'])								->name('create');

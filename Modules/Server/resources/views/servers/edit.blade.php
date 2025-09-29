@@ -216,15 +216,35 @@
 								helpText="Physical location of the server"
 							/>
 
-							@if(\Illuminate\Support\Facades\Auth::user()->role_key == 'super_admin')
-								<x-form.form-input
-									name="user_id"
-									type="select"
-									:value="$server->user_id"
-									defaultDisabled="false"
-									:options="$users"
-									default="Select user"
-								/>
+							@php ($isAdmin = in_array(\Illuminate\Support\Facades\Auth::user()->role_key, ['super_admin', 'manager']))
+
+							@if($isAdmin)
+								{{-- اگر x-form.form-input شما multiple را پشتیبانی نمی‌کند، از select خام زیر استفاده کن --}}
+								<div class="col-12">
+									<label for="server-users-select" class="form-label">
+										{{ tr_helper('contents','Users who can access this server') }}
+									</label>
+									<select id="server-users-select"
+											name="user_ids[]"
+											class="form-select"
+											multiple
+											data-placeholder="{{ tr_helper('contents','Select users') }}">
+										@foreach(($users ?? []) as $uId => $uName)
+											<option value="{{ $uId }}" @if(in_array($uId, $usersHasAccess)) selected @endif
+												@selected(collect(old('user_ids', []))->contains($uId))>
+												{{ $uName }}
+											</option>
+										@endforeach
+									</select>
+									<small class="text-muted d-block mt-1">
+										برای انتخاب چند نفر از Ctrl/Cmd استفاده کن (یا سرچ Select2).
+									</small>
+									@error('user_ids')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+									@error('user_ids.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+								</div>
+							@else
+								{{-- برای نقش‌های غیر ادمین: فقط خودش --}}
+								<input type="hidden" name="user_ids[]" value="{{ auth()->id() }}">
 							@endif
 
 							<x-form.form-input

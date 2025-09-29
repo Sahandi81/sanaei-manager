@@ -108,8 +108,6 @@ class BroadcastController extends Controller
 				return back()->withInput()->with('error_msg', tr_helper('contents','BroadcastFailed') ?? 'Broadcast failed. Please check logs.');
 			}
 		}
-		dd('sdf');
-		// --- حالت عادی: ارسال برای مخاطبین انتخاب‌شده ---
 		try {
 			$res = $broadcast->sendToOwner($owner, $fields['text'], ['only' => $only], $replyMarkup, $parseMode);
 

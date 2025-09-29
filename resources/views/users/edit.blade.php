@@ -56,14 +56,15 @@
 								type="password"
 								placeholder="{{ tr_helper('contents', 'LeaveBlankIfNoChange') }}"
 							/>
-
-							<x-form.form-input
-								name="role_key"
-								type="select"
-								:options="$roles->pluck('title', 'role_key')"
-								:value="$user->role_key"
-								required
-							/>
+							@if($user->id != \Illuminate\Support\Facades\Auth::id())
+								<x-form.form-input
+									name="role_key"
+									type="select"
+									:options="$roles->pluck('title', 'role_key')"
+									:value="$user->role_key"
+									required
+								/>
+							@endif
 
 							{{-- اختیاری: فیلدهای تلگرام طبق مدل User --}}
 							<x-form.form-input
@@ -81,6 +82,46 @@
 								:options="[1 => tr_helper('contents','Active'), 0 => tr_helper('contents','InActive')]"
 								:value="$user->status"
 								required
+							/>
+							@if(\Illuminate\Support\Facades\Auth::user()->role->full_access)
+								<x-form.form-input
+									name="parent_id"
+									type="select"
+									:options="\App\Models\User::query()->whereHas('role', function ($q)
+										{
+											$q->where('is_admin', 1);
+										}
+									)->pluck('email','id')"
+									:value="old('parent_id', 1)"
+								/>
+							@else
+								<input type="hidden" name="parent_id" value="{{ \Illuminate\Support\Facades\Auth::id() }}">
+							@endif
+
+							{{-- ===== Bot fields (NEW) ===== --}}
+							<x-form.form-input
+								name="bot_name"
+								:value="$user->bot_name"
+								:validation="['maxLength' => 255]"
+							/>
+
+							<x-form.form-input
+								name="bot_id"
+								:value="$user->bot_id"
+								:validation="['maxLength' => 100]"
+							/>
+
+							<x-form.form-input
+								name="support_id"
+								:value="$user->support_id"
+								:validation="['maxLength' => 100]"
+							/>
+
+							<x-form.form-input
+								name="tut_url"
+								placeholder="https://example.com/tutorial"
+								:value="$user->tut_url"
+								:validation="['maxLength' => 255, 'url' => true]"
 							/>
 
 							<div class="col-12">

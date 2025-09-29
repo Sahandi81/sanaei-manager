@@ -28,11 +28,14 @@ class Client extends Model
 
 	public static function paginate($perPage = 25): LengthAwarePaginator
 	{
-		$userAdminStatus = Auth::user()->role->is_admin;
+		$userAdminStatus = Auth::user()->role->full_access;
 		if ($userAdminStatus){
 			return self::query()->latest()->paginate($perPage);
 		}else {
-			return self::query()->where('user_id', Auth::id())->latest()->paginate($perPage);
+			$users = User::getOwnUsers()->pluck('id');
+			return self::query()->where('user_id', Auth::id())
+				->orWhereIn('user_id', $users)
+				->latest()->paginate($perPage);
 		}
 	}
 

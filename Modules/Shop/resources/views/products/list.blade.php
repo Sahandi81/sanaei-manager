@@ -23,7 +23,9 @@
 							<tr>
 								<th>#</th>
 								<th>{{ tr_helper('validation', 'attributes.name') }}</th>
-								<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
+								@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+									<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
+								@endif
 								<th>{{ tr_helper('validation', 'attributes.traffic_gb') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.duration_days') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.price') }}</th>
@@ -39,7 +41,9 @@
 								<tr>
 									<td>{{ $loop->iteration }}</td>
 									<td>{{ $product->name }}</td>
-									<td><a href="#{{-- route('users.edit',  $client->user->id ) --}}">{{ $product->user?->name }}</a></td>
+									@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+										<td><a href="#{{-- route('users.edit',  $client->user->id ) --}}">{{ $product->user?->name }}</a></td>
+									@endif
 									<td>{{ $product->traffic_gb }} GB</td>
 									<td>{{ $product->duration_days }} days</td>
 									<td>{{ number_format($product->price) }} Toman</td>

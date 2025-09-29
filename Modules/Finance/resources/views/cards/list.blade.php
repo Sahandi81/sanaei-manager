@@ -22,7 +22,9 @@
 							<thead>
 							<tr>
 								<th>#</th>
-								<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
+								@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+									<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
+								@endif
 								<th>{{ tr_helper('validation', 'attributes.owner_name') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.bank_name') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.card_number') }}</th>
@@ -34,7 +36,9 @@
 							@forelse($cards as $card)
 								<tr>
 									<td>{{ $loop->iteration }}</td>
-									<td>{{ $card->user?->name }}</td>
+									@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+										<td>{{ $card->user?->name }}</td>
+									@endif
 									<td>{{ $card->owner_name }}</td>
 									<td>{{ $card->bank_name }}</td>
 									<td class="ltr">{{ \Illuminate\Support\Str::mask($card->card_number, '*', 0, strlen($card->card_number)-4) }}</td>

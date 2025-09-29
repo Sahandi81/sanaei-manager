@@ -27,7 +27,7 @@ class SupportHandler implements Handler
 		$cbId      = $cb['id'] ?? null;
 		if (!$chatId || !$messageId) return;
 
-		$text = $this->msg->render('SupportText', ['support_id' => '@Satify_supp']);
+		$text = $this->msg->render('SupportText', ['support_id' => $owner->support_id ?? '@Satify_supp']);
 		$text = escapeMarkdownV2PreserveCode($text);
 		$kb   = $this->ikb->backToMenu(); // باید آرایه reply_markup معتبر برگرداند
 

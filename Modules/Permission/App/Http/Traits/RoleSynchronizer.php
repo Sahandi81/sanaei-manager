@@ -3,6 +3,7 @@
 namespace Modules\Permission\App\Http\Traits;
 
 use ErrorException;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Route;
@@ -18,7 +19,7 @@ trait RoleSynchronizer
 	{
 		return array_filter(collect(Route::getRoutes())->map(function (\Illuminate\Routing\Route $route) {
 			try {
-				if (!in_array('auth:web', $route->middleware())) return null;
+				if (!in_array('auth:sanctum', $route->middleware())) return null;
 				if ($route->getController()){
 					# Or use route namespaces! more easily
 					$nameSpace  = get_class($route->getController());
@@ -35,7 +36,7 @@ trait RoleSynchronizer
 					];
 				}
 				return null;
-			} catch (RouteNotFoundException $exception){
+			} catch (BindingResolutionException|RouteNotFoundException $exception){
 				# Yeah, I know.
 //				throw new RouteNotFoundException("نام گذاری روت {$route->uri()} به درستی صورت نگرفته است.");
 			} catch (TypeError $exception){

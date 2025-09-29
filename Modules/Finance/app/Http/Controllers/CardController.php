@@ -26,7 +26,7 @@ class CardController extends Controller
 
 	public function create(): Factory|Application|View
 	{
-		$users = Auth::user()->role->is_admin ? User::getActiveUsers() : collect();
+		$users = User::getActiveUsers();
 		return view('finance::cards.create', compact('users'));
 	}
 

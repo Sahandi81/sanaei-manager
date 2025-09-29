@@ -3,7 +3,6 @@
 
 @section('title', $customPageName)
 
-<!-- Vendor Styles -->
 @section('vendor-style')
 	@vite([
 	  'resources/assets/vendor/libs/bootstrap-select/bootstrap-select.scss',
@@ -15,7 +14,6 @@
 	])
 @endsection
 
-<!-- Vendor Scripts -->
 @section('vendor-script')
 	@vite([
 	  'resources/assets/vendor/libs/select2/select2.js',
@@ -30,10 +28,9 @@
 	])
 @endsection
 
-<!-- Page Scripts -->
 @section('page-script')
 	@vite([
-//		'resources/assets/js/form-validation.js',
+	  // 'resources/assets/js/form-validation.js',
 	])
 @endsection
 
@@ -42,17 +39,15 @@
 		@include('components.pagePath')
 		@include('components.errors')
 		<div class="row">
-			<!-- FormValidation -->
 			<div class="col-12">
 				<div class="card">
 					<h5 class="card-header">{{ $customPageName }}</h5>
 					<div class="card-body">
-						<form id="serverForm" class="row g-3" method="POST" action="{{ route('servers.store') }}"
-							  data-dynamic-validation>
+						<form id="serverForm" class="row g-3" method="POST" action="{{ route('servers.store') }}" data-dynamic-validation>
 							@csrf
 							<input type="hidden" name="form" value="create_server">
-							<!-- Server Basic Information -->
 
+							{{-- Basic fields --}}
 							<x-form.form-input
 								name="name"
 								required
@@ -74,28 +69,46 @@
 								:validation="['maxLength' => 100]"
 							/>
 
+							{{-- === NEW: انتخاب کاربران (many-to-many) === --}}
+							@php ($isAdmin = in_array(\Illuminate\Support\Facades\Auth::user()->role_key, ['super_admin', 'manager']))
 
-							@if(\Illuminate\Support\Facades\Auth::user()->role_key == 'super_admin')
-								<x-form.form-input
-									name="user_id"
-									type="select"
-									defaultDisabled="false"
-									:options="$users"
-									default="Select user"
-								/>
+							@if($isAdmin)
+								{{-- اگر x-form.form-input شما multiple را پشتیبانی نمی‌کند، از select خام زیر استفاده کن --}}
+								<div class="col-12">
+									<label for="server-users-select" class="form-label">
+										{{ tr_helper('contents','Users who can access this server') }}
+									</label>
+									<select id="server-users-select"
+											name="user_ids[]"
+											class="form-select"
+											multiple
+											data-placeholder="{{ tr_helper('contents','Select users') }}">
+										@foreach(($users ?? []) as $uId => $uName)
+											<option value="{{ $uId }}"
+												@selected(collect(old('user_ids', []))->contains($uId))>
+												{{ $uName }}
+											</option>
+										@endforeach
+									</select>
+									<small class="text-muted d-block mt-1">
+										برای انتخاب چند نفر از Ctrl/Cmd استفاده کن (یا سرچ Select2).
+									</small>
+									@error('user_ids')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+									@error('user_ids.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+								</div>
+							@else
+								{{-- برای نقش‌های غیر ادمین: فقط خودش --}}
+								<input type="hidden" name="user_ids[]" value="{{ auth()->id() }}">
 							@endif
-
+							{{-- === /NEW === --}}
 
 							<x-form.form-input
 								name="panel_type"
 								type="select"
-								:options="[
-                                    'sanaei' => 'Sanaei',
-                                ]"
+								:options="['sanaei' => 'Sanaei']"
 								default="Select Panel Type"
 								required
 							/>
-
 
 							<x-form.form-input
 								name="api_url"
@@ -112,7 +125,6 @@
 								:validation="['minLength' => 3]"
 							/>
 
-
 							<x-form.form-input
 								name="password"
 								type="password"
@@ -121,7 +133,6 @@
 								:validation="['minLength' => 3]"
 							/>
 
-
 							<x-form.form-input
 								name="status"
 								type="select"
@@ -129,12 +140,11 @@
 								default="Select Status"
 								required
 							/>
+
 							<div class="col-12">
-								<button type="submit" class="btn btn-primary btn-9rem" data-submit-button
-										style="max-width: 10rem">
-									<span class="btn-text"> {{ tr_helper('contents', 'Save') }} </span>
-									<span class="spinner-border spinner-border-sm d-none" role="status"
-										  aria-hidden="true"></span>
+								<button type="submit" class="btn btn-primary btn-9rem" data-submit-button style="max-width: 10rem">
+									<span class="btn-text">{{ tr_helper('contents', 'Save') }}</span>
+									<span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
 								</button>
 							</div>
 						</form>
@@ -144,3 +154,20 @@
 		</div>
 	</div>
 @endsection
+
+@push('scripts')
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			// اگر select2 لود شد، مالتی‌سلکت را زیباتر کن
+			if (window.$ && $.fn.select2) {
+				const $el = $('#server-users-select');
+				if ($el.length) {
+					$el.select2({
+						width: '100%',
+						placeholder: $el.data('placeholder') || '{{ __("Select users") }}'
+					});
+				}
+			}
+		});
+	</script>
+@endpush

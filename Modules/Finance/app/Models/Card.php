@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -16,7 +17,6 @@ class Card extends Model
 		'bank_name',
 		'owner_name',
 		'is_default',
-		// 'status', // اگه خواستی اضافه کنی
 	];
 
 	protected $casts = [
@@ -58,24 +58,27 @@ class Card extends Model
 
 	public static function getActiveItems(): Collection
 	{
-		$userAdminStatus = Auth::user()->role->is_admin;
+		$userAdminStatus = Auth::user()->role->full_access;
 		if ($userAdminStatus) {
 			return self::query()
 				->get();
 		} else {
+			$users = User::getOwnUsers()->pluck('id');
 			return self::query()
 				->where('user_id', Auth::id())
+				->orWhereIn('user_id', $users)
 				->get();
 		}
 	}
 
 	public static function paginate($perPage = 25): LengthAwarePaginator
 	{
-		$userAdminStatus = Auth::user()->role->is_admin;
+		$userAdminStatus = Auth::user()->role->full_access;
 		if ($userAdminStatus){
 			return self::query()->latest()->paginate($perPage);
 		} else {
-			return self::query()->where('user_id', Auth::id())->latest()->paginate($perPage);
+			$users = User::getOwnUsers()->pluck('id');
+			return self::query()->where('user_id', Auth::id())->orWhereIn('user_id', $users)->latest()->paginate($perPage);
 		}
 	}
 }

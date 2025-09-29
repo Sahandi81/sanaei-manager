@@ -23,7 +23,9 @@
 							<tr>
 								<th>#</th>
 								<th>{{ tr_helper('validation', 'attributes.client_id') }}</th>
-								<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
+								@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+									<th>{{ tr_helper('validation', 'attributes.user_id') }}</th>
+								@endif
 								<th>{{ tr_helper('validation', 'attributes.amount') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.status') }}</th>
 								<th>{{ tr_helper('validation', 'attributes.type') }}</th>
@@ -35,7 +37,9 @@
 							@forelse($transactions as $transaction)
 								<tr>
 									<td>{{ $loop->iteration }}</td>
-									<td>{{ $transaction->client?->name }}</td>
+									@if(\Illuminate\Support\Facades\Auth::user()->role->is_admin)
+										<td>{{ $transaction->client?->name }}</td>
+									@endif
 									<td><a href="#{{-- route('users.edit',  $client->user->id ) --}}">{{ $transaction->user?->name }}</a></td>
 									<td>{{ number_format($transaction->amount) }} {{ $transaction->currency }}</td>
 									<td>

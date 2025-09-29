@@ -73,6 +73,20 @@
 								:value="old('status', 1)"
 								required
 							/>
+							@if(\Illuminate\Support\Facades\Auth::user()->role->full_access)
+								<x-form.form-input
+									name="parent_id"
+									type="select"
+									:options="\App\Models\User::query()->whereHas('role', function ($q)
+										{
+											$q->where('is_admin', 1);
+										}
+									)->pluck('email','id')"
+									:value="old('parent_id', 1)"
+								/>
+							@else
+								<input type="hidden" name="parent_id" value="{{ \Illuminate\Support\Facades\Auth::id() }}">
+							@endif
 
 							<div class="col-12">
 								<button type="submit" class="btn btn-primary btn-9rem" data-submit-button>

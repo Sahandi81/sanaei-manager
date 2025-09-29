@@ -31,7 +31,7 @@ class ClientRequest extends FormRequest
 
 		return match ($this->get('form')) {
 			self::CREATE => [
-				'user_id' 			=> ['required', 'exists:users,id'],
+				'user_id' 			=> ['nullable', 'exists:users,id'],
 				'name' 				=> ['required', 'string', 'max:255'],
 				'telegram_id' 		=> ['nullable', 'numeric'],
 				'desc' 				=> ['nullable', 'string'],

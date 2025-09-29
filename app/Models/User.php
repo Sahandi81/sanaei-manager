@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,6 +15,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Modules\Permission\App\Models\Role;
+use Modules\Server\Models\Server;
 use Modules\Shop\Models\Product;
 
 class User extends Authenticatable
@@ -30,9 +32,14 @@ class User extends Authenticatable
         'name',
         'status',
         'email',
+        'parent_id',
         'password',
         'telegram_id',
         'role_key',
+        'bot_name',
+        'bot_id',
+        'support_id',
+        'tut_url',
         'telegram_bot_token',
         'telegram_webhook',
     ];
@@ -49,17 +56,27 @@ class User extends Authenticatable
 
 	public static function getActiveUsers(): Collection
 	{
-		return self::query()->where('status', 1)->get();
+		$userAdminStatus = Auth::user()->role->full_access;
+		if ($userAdminStatus){
+			return self::query()->where('status', 1)->latest()->get();
+		}else {
+			return self::getOwnUsers()->where('status', 1)->orWhere('id', Auth::id())->latest()->get();
+		}
 	}
 
 	public static function paginate($perPage = 25): LengthAwarePaginator
 	{
-		$userAdminStatus = Auth::user()->role->is_admin;
+		$userAdminStatus = Auth::user()->role->full_access;
 		if ($userAdminStatus){
 			return self::query()->latest()->paginate($perPage);
 		}else {
-			return self::query()->where('user_id', Auth::id())->latest()->paginate($perPage);
+			return self::getOwnUsers()->orWhere('id', Auth::id())->latest()->paginate($perPage);
 		}
+	}
+
+	public static function getOwnUsers()
+	{
+		return self::query()->where('parent_id', Auth::id());
 	}
 
 	/**
@@ -93,5 +110,10 @@ class User extends Authenticatable
 	public function products(): HasMany
 	{
 		return $this->hasMany(Product::class);
+	}
+
+	public function servers(): BelongsToMany
+	{
+		return $this->belongsToMany(Server::class, 'server_user', 'user_id', 'server_id')->withTimestamps();
 	}
 }

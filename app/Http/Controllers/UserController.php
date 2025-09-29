@@ -33,11 +33,12 @@ class UserController extends Controller
 	public function store(Request $request): RedirectResponse
 	{
 		$fields = $request->validate([
-			'name'     => 'required|string|max:255',
-			'email'    => 'required|email|unique:users,email',
-			'password' => 'required|min:6',
-			'status'   => 'required|boolean',
-			'role_key' => 'required|string|max:50',
+			'name'     	=> 'required|string|max:255',
+			'email'    	=> 'required|email|unique:users,email',
+			'password' 	=> 'required|min:6',
+			'status'   	=> 'required|boolean',
+			'role_key' 	=> 'required|string|max:50',
+			'parent_id'	=> 'nullable|string|max:50',
 		]);
 
 		$fields['password'] = Hash::make($fields['password']);
@@ -62,13 +63,19 @@ class UserController extends Controller
 	public function update(Request $request, User $client): RedirectResponse
 	{
 		$fields = $request->validate([
-			'name'                 => 'required|string|max:255',
-			'email'                => 'required|email|unique:users,email,' . $client->id,
-			'password'             => 'nullable|min:6',
-			'status'               => 'required|boolean',
-			'role_key'             => 'required|string|max:50',
-			'telegram_bot_token'   => 'nullable|string|max:255',
-			'telegram_webhook'     => 'nullable|string|max:255',
+			'name'               => 'required|string|max:255',
+			'email'              => 'required|email|unique:users,email,' . $client->id,
+			'password'           => 'nullable|min:6',
+			'status'             => 'required|boolean',
+			'role_key'           => 'nullable|string|max:50',
+			'telegram_bot_token' => 'nullable|string|max:255',
+			'telegram_webhook'   => 'nullable|string|max:255',
+
+			// NEW
+			'bot_name'           => 'nullable|string|max:255',
+			'bot_id'             => 'nullable|string|max:100',
+			'support_id'         => 'nullable|string|max:100',
+			'tut_url'            => 'nullable|url|max:255',
 		]);
 
 		if (!empty($fields['password'])) {
@@ -98,12 +105,13 @@ class UserController extends Controller
 		if (!empty($client->telegram_bot_token)) {
 			try {
 				$res = app(TelegramWebhookService::class)->setWebhookForUser($client);
-				if (!$res)
+				if (!$res) {
 					throw new \Exception(tr_helper('contents', 'ConnectionFailed'));
+				}
 			} catch (\Exception $e) {
 				$this->logError('setTelegramWebhookFailed', 'Failed to set Telegram webhook after user update', [
-					'user_id'   => $client->id,
-					'error'     => $e->getMessage(),
+					'user_id' => $client->id,
+					'error'   => $e->getMessage(),
 				]);
 
 				return redirect()->back()
@@ -114,6 +122,7 @@ class UserController extends Controller
 		return redirect()->route('panel.users.index')
 			->with('success_msg', tr_helper('contents', 'SuccessfullyUpdated'));
 	}
+
 
 
 	public function destroy(User $client): RedirectResponse

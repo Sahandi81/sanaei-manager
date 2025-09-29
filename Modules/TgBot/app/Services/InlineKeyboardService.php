@@ -2,11 +2,12 @@
 
 namespace Modules\TgBot\Services;
 
+use App\Models\User;
 use Modules\TgBot\Support\BotActions;
 
 class InlineKeyboardService
 {
-	public function main(): array
+	public function main(User $owner): array
 	{
 		return [
 			'inline_keyboard' => [
@@ -21,7 +22,7 @@ class InlineKeyboardService
 					['text' => tr_helper('bot', 'btn_get_trial'),			     'callback_data' => BotActions::TRIAL], // 🆕 دکمه تست
 				],
 				[
-					['text' => tr_helper('bot', 'btn_tutorials_inline'), 'url' => 'https://t.me/Satify_vpn/31'],
+					['text' => tr_helper('bot', 'btn_tutorials_inline'), 'url' => $owner->tut_url ?? 'https://t.me/Satify_vpn/31'],
 //					['text' => tr_helper('bot', 'btn_tutorials_inline'),        'callback_data' => BotActions::TUT],
 					['text' => tr_helper('bot', 'btn_referral_inline'),         'callback_data' => BotActions::REF],
 				],
@@ -43,4 +44,5 @@ class InlineKeyboardService
 		];
 	}
 }
+
 

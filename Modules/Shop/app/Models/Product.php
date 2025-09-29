@@ -28,7 +28,7 @@ class Product extends Model
 
 	public static function getActiveProducts($userID = null): Collection
 	{
-		$userAdminStatus = Auth::user()->role->is_admin;
+		$userAdminStatus = Auth::user()->role->full_access;
 		if ($userAdminStatus) {
 			return self::query()->where('is_active', 1)
 				->tap(function ($q) use ($userID){
@@ -52,7 +52,7 @@ class Product extends Model
 
 	public static function paginate($perPage = 25): LengthAwarePaginator
 	{
-		$userAdminStatus = Auth::user()->role->is_admin;
+		$userAdminStatus = Auth::user()->role->full_access;
 
 		$self = self::with('servers')->latest();
 

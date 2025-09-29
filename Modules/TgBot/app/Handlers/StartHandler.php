@@ -87,9 +87,9 @@ class StartHandler implements Handler
 
 		$text = $this->msg->render($key, [
 			'name'       => $client->name,
-			'bot_name'   => 'Satify VPN',
-			'bot_id'     => '@satifyvpn_bot',
-			'support_id' => '@Satify_supp',
+			'bot_name'   => $owner->bot_name ?? 'Satify VPN',
+			'bot_id'     => $owner->bot_id ?? '@SatifyVPN_bot',
+			'support_id' => $owner->support_id ??'@Satify_Supp',
 		]);
 
 		$this->tg->sendMessage($owner->telegram_bot_token, (int)$chatId, $text, $this->kb->buildReplyKeyboard());

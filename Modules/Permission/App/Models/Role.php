@@ -31,7 +31,7 @@ class Role extends Model
 		if ($userAdminStatus) {
 			return self::query()->get();
 		}else{
-			return self::query()->whereNot('full_access', 1)->get();
+			return self::query()->whereNot('full_access', 1)->whereNot('is_admin', 1)->get();
 		}
 	}
 	public function permissions(): HasManyThrough

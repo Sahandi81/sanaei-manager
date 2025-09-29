@@ -37,8 +37,7 @@ class ClientController extends Controller
 		// Force type to 'panel' for panel-created clients
 		$fields['type'] = 'panel';
 
-		// Set user_id if not provided (for admin users)
-		if (!isset($fields['user_id']) && Auth::user()->role->is_admin) {
+		if (!isset($fields['user_id'])) {
 			$fields['user_id'] = Auth::id();
 		}
 

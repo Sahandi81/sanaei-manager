@@ -28,7 +28,7 @@ class MenuHandler implements Handler
 			if (!$chatId || !$messageId) return;
 
 			$text = $this->msg->render('MenuHomeText');
-			$markup = $this->ikb->main();
+			$markup = $this->ikb->main($owner);
 
 			$isMedia = !empty($m['photo'])
 				|| !empty($m['document'])
@@ -67,6 +67,6 @@ class MenuHandler implements Handler
 		if (!$chatId) return;
 
 		$text = $this->msg->render('MenuHomeText');
-		$this->tg->sendMessage($owner->telegram_bot_token, $chatId, $text, $this->ikb->main());
+		$this->tg->sendMessage($owner->telegram_bot_token, $chatId, $text, $this->ikb->main($owner));
 	}
 }

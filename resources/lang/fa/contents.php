@@ -2,6 +2,8 @@
 
 
 return [
+    'MyProfile'										=> 'پروفایل',
+    'Logout'										=> 'خروج!',
     'welcomeTo'										=> 'خوش‌آمدید به ',
     'ForgetPass'									=> 'رمز عبور خود را فراموش کرده‌اید؟',
     'RememberMe'									=> 'مرا به خاطر بسپار',

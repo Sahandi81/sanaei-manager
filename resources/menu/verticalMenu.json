@@ -5,6 +5,7 @@
 			"icon": "menu-icon tf-icons bx bx-server",
 			"slug": "servers",
 			"prefix": "servers.",
+			"roles": ["super_admin", "manager"],
 			"submenu": [
 				{
 					"url": "servers.index",
@@ -23,6 +24,7 @@
 			"icon": "menu-icon tf-icons bx bx-shopping-bag",
 			"slug": "shop.products",
 			"prefix": "shop.products.",
+			"roles": ["super_admin", "manager"],
 			"submenu": [
 				{
 					"url": "shop.products.index",
@@ -41,6 +43,7 @@
 			"icon": "menu-icon tf-icons bx bx-group",
 			"slug": "clients",
 			"prefix": "clients.",
+			"roles": ["super_admin", "manager", "Seller"],
 			"submenu": [
 				{
 					"url": "clients.index",
@@ -62,6 +65,7 @@
 			"icon": "menu-icon tf-icons bx bx-receipt",
 			"slug": "finance.transactions",
 			"prefix": "finance.transactions.",
+			"roles": ["super_admin", "manager", "Seller"],
 			"submenu": [
 				{
 					"url": "finance.transactions.index",
@@ -80,6 +84,7 @@
 			"icon": "menu-icon tf-icons bx bx-credit-card",
 			"slug": "finance.cards",
 			"prefix": "finance.cards.",
+			"roles": ["super_admin", "manager", "Seller"],
 			"submenu": [
 				{
 					"url": "finance.cards.index",
@@ -101,6 +106,7 @@
 			"icon": "menu-icon tf-icons bx bx-group",
 			"slug": "panel.users",
 			"prefix": "panel.users.",
+			"roles": ["super_admin", "manager"],
 			"submenu": [
 				{
 					"url": "panel.users.index",
@@ -122,6 +128,7 @@
 			"icon": "menu-icon tf-icons bx bx-message",
 			"slug": "tgbot",
 			"prefix": "tgbot.",
+			"roles": ["super_admin", "manager", "Seller"],
 			"submenu": [
 				{
 					"url": "tgbot.broadcasts.create",
